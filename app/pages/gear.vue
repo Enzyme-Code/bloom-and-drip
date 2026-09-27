@@ -48,12 +48,12 @@ function onSelect(id: string) {
       <p class="text-body-sm text-on-surface-variant">
         每組器具包含水溫、研磨、濾杯與水質，沖煮時在「粉水比」下方選擇要用哪一組。修改會自動儲存。
       </p>
-      <p v-if="!user" class="flex flex-wrap items-center gap-1 text-body-sm bg-secondary-fixed/40 text-on-secondary-fixed px-3 py-2 rounded-lg">
-        <span class="icon text-[18px]">info</span>
-        訪客模式下的修改只在這次瀏覽有效，
-        <NuxtLink :to="{ path: '/login', query: { redirect: '/gear' } }" class="font-semibold underline">登入</NuxtLink>
-        後即可保存你的器具。
-      </p>
+      <div v-if="!user" class="flex items-start gap-2 text-body-sm bg-secondary-fixed/40 text-on-secondary-fixed px-3 py-2.5 rounded-lg">
+        <span class="icon text-[18px] shrink-0">info</span>
+        <p>
+          訪客模式的修改只在這次瀏覽有效，<NuxtLink :to="{ path: '/login', query: { redirect: '/gear' } }" class="font-semibold underline">登入</NuxtLink>後即可保存。
+        </p>
+      </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-space-md">
         <GearCard

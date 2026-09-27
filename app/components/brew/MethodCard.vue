@@ -127,7 +127,7 @@ const inputClass = 'w-full min-w-0 px-2 py-1.5 rounded bg-surface-container-lowe
             class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface-container-high text-[12px] font-semibold text-on-surface hover:bg-surface-container-highest transition-colors"
             @click="templatesOpen = !templatesOpen"
           >
-            <span class="icon text-[15px]">auto_awesome</span>套用範本
+            <span class="icon text-[15px]">auto_awesome</span><span class="hidden sm:inline">套用</span>範本
           </button>
           <div v-if="templatesOpen" class="absolute right-0 top-full mt-2 w-72 rounded-xl bg-surface-container-lowest shadow-lg border border-outline-variant/50 p-2 z-30">
             <button
@@ -149,7 +149,7 @@ const inputClass = 'w-full min-w-0 px-2 py-1.5 rounded bg-surface-container-lowe
           @click="toggleEditing"
         >
           <span class="icon text-[15px]">{{ editing ? 'check' : 'edit' }}</span>
-          {{ editing ? '完成' : '編輯步驟' }}
+          {{ editing ? '完成' : '編輯' }}<span v-if="!editing" class="hidden sm:inline">步驟</span>
         </button>
       </div>
     </div>
@@ -196,7 +196,7 @@ const inputClass = 'w-full min-w-0 px-2 py-1.5 rounded bg-surface-container-lowe
           :aria-label="`第 ${i + 1} 步類型`"
           @change="setType(step, i, ($event.target as HTMLSelectElement).value as StepType)"
         >
-          <option v-for="t in STEP_TYPES" :key="t.type" :value="t.type">{{ t.label }}</option>
+          <option v-for="t in STEP_TYPES" :key="t.type" :value="t.type">{{ t.name }}</option>
         </select>
         <div class="flex items-center gap-0.5 sm:order-last">
           <button type="button" class="w-7 h-7 rounded hover:bg-surface-container-high disabled:opacity-30" :disabled="i === 0" aria-label="上移" @click="move(i, -1)">

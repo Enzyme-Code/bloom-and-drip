@@ -30,11 +30,12 @@ const items = computed(() => [
         <span class="icon text-[15px]">tune</span>管理器具
       </NuxtLink>
     </div>
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-      <div v-for="item in items" :key="item.label" class="flex items-center gap-1.5 min-w-0">
-        <span class="icon text-[15px] text-secondary shrink-0">{{ item.icon }}</span>
-        <span class="font-mono text-[10px] text-outline shrink-0">{{ item.label }}</span>
-        <span class="font-mono text-body-sm text-primary truncate">{{ item.value }}</span>
+    <div class="grid grid-cols-2 xl:grid-cols-4 gap-2">
+      <div v-for="item in items" :key="item.label" class="flex items-start gap-1.5 min-w-0">
+        <span class="icon text-[15px] text-secondary shrink-0 mt-0.5">{{ item.icon }}</span>
+        <span class="hidden sm:inline font-mono text-[10px] text-outline shrink-0 mt-1">{{ item.label }}</span>
+        <!-- Free-text values (水源, 濾杯) wrap instead of being cut off -->
+        <span class="font-mono text-body-sm text-primary leading-snug break-words min-w-0">{{ item.value }}</span>
       </div>
     </div>
   </div>

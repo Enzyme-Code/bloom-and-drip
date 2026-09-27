@@ -68,7 +68,10 @@ export type StageStatus = 'done' | 'active' | 'pending'
 export interface BrewStage {
   key: string
   type: StepType
+  /** e.g. "注水 (Pour)" */
   label: string
+  /** Chinese-only name for tight spaces, e.g. "注水" / "滴濾完成" */
+  name: string
   shortLabel: string
   /** Target cumulative mass in grams; null for wait / drawdown */
   targetMass: number | null

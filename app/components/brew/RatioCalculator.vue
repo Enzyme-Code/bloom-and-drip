@@ -43,9 +43,9 @@ const presetClass = (active: boolean) =>
           <span class="font-mono text-label-mono text-secondary">TARGET MASS</span>
         </div>
         <BrewStepper :model-value="dose" :step="0.5" @update:model-value="setDose" />
-        <div class="flex items-center justify-between pt-1">
-          <span class="font-mono text-[10px] text-outline">快捷預設</span>
-          <div class="flex gap-1 font-mono text-[11px]">
+        <div class="flex items-start justify-between gap-2 pt-1">
+          <span class="font-mono text-[10px] text-outline shrink-0 pt-1">快捷預設</span>
+          <div class="flex flex-wrap justify-end gap-1 font-mono text-[11px]">
             <button
               v-for="p in DOSE_PRESETS"
               :key="p"
@@ -74,9 +74,9 @@ const presetClass = (active: boolean) =>
           <span class="font-mono text-label-mono text-secondary">FINAL YIELD</span>
         </div>
         <BrewStepper :model-value="water" :step-by="stepRatio" @update:model-value="setWater" />
-        <div class="flex items-center justify-between pt-1">
-          <span class="font-mono text-[10px] text-outline">注水倍率</span>
-          <div class="flex gap-1 font-mono text-[11px]">
+        <div class="flex items-start justify-between gap-2 pt-1">
+          <span class="font-mono text-[10px] text-outline shrink-0 pt-1">注水倍率</span>
+          <div class="flex flex-wrap justify-end gap-1 font-mono text-[11px]">
             <button
               v-for="r in RATIO_PRESETS"
               :key="r"
@@ -95,12 +95,12 @@ const presetClass = (active: boolean) =>
     <!-- Mobile steppers -->
     <div class="md:hidden grid grid-cols-2 gap-2">
       <div class="rounded-lg bg-surface-container p-3 flex flex-col gap-2 min-w-0">
-        <span class="font-mono text-[11px] text-on-surface-variant">咖啡粉量 (DOSE)</span>
-        <BrewStepper :model-value="dose" :step="0.5" size="md" @update:model-value="setDose" />
+        <span class="font-mono text-[11px] text-on-surface-variant text-center">咖啡粉量 (DOSE)</span>
+        <BrewStepper :model-value="dose" :step="0.5" @update:model-value="setDose" />
       </div>
       <div class="rounded-lg bg-surface-container p-3 flex flex-col gap-2 min-w-0">
-        <span class="font-mono text-[11px] text-on-surface-variant">總注水量 (WATER)</span>
-        <BrewStepper :model-value="water" :step-by="stepRatio" size="md" @update:model-value="setWater" />
+        <span class="font-mono text-[11px] text-on-surface-variant text-center">總注水量 (WATER)</span>
+        <BrewStepper :model-value="water" :step-by="stepRatio" @update:model-value="setWater" />
       </div>
     </div>
 

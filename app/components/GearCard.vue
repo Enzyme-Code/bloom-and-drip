@@ -52,7 +52,7 @@ function onRemove() {
       </button>
     </div>
 
-    <div class="grid grid-cols-2 gap-space-sm">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-space-sm">
       <BrewParamCard v-model:value="temperature" editing icon="device_thermostat" label="注水水溫" suffix="°C" numeric />
       <BrewParamCard v-model:value="grind" v-model:note="grindNote" editing icon="grain" label="研磨刻度" />
       <BrewParamCard v-model:value="dripper" v-model:note="filter" editing icon="filter_vintage" label="萃取濾杯" />

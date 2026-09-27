@@ -145,6 +145,7 @@ export function useBrewSession() {
         key: step.id,
         type: step.type,
         label: meta.label,
+        name: meta.name,
         shortLabel: meta.short,
         targetMass: meta.hasWater && step.share != null ? Math.round(step.share * water.value) : null,
         plannedAt: step.at,
