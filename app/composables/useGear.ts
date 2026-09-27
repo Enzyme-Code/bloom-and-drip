@@ -11,6 +11,18 @@ const pendingWrites = new Map<string, ReturnType<typeof setTimeout>>()
 
 const cloneDefaults = () => DEFAULT_GEAR.map(g => ({ ...g }))
 
+/** Gear saved before 水源 replaced 水質 (ppm): the water name lived in waterNote and the TDS in waterPpm */
+function fromDoc(id: string, data: Record<string, unknown>): GearSet {
+  const gear = { ...(data as Omit<GearSet, 'id'>), id }
+  if (gear.waterSource === undefined) {
+    const ppm = data.waterPpm
+    gear.waterSource = String(data.waterNote ?? '')
+    gear.waterNote = typeof ppm === 'number' ? `TDS ${ppm} ppm` : ''
+  }
+  delete (gear as Record<string, unknown>).waterPpm
+  return gear
+}
+
 function readSelected() {
   try {
     return localStorage.getItem(SELECTED_KEY)
@@ -58,7 +70,7 @@ export function useGear() {
             const local = new Map(gearSets.value.map(g => [g.id, g]))
             gearSets.value = snap.docs
               // Keep the local copy while an edit is still waiting to be written
-              .map(d => (pendingWrites.has(d.id) && local.get(d.id)) || { ...(d.data() as Omit<GearSet, 'id'>), id: d.id })
+              .map(d => (pendingWrites.has(d.id) && local.get(d.id)) || fromDoc(d.id, d.data()))
               .sort((a, b) => a.name.localeCompare(b.name, 'zh-Hant'))
           }, err => console.error('[gear]', err))
         },

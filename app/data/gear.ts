@@ -10,8 +10,8 @@ export const DEFAULT_GEAR: GearSet[] = [
     grindNote: '中細研磨 (Medium-Fine)',
     dripper: 'Hario V60 01',
     filter: '三洋麻纖維濾紙',
-    waterPpm: 75,
-    waterNote: 'Third Wave Water'
+    waterSource: 'Third Wave Water',
+    waterNote: ''
   },
   {
     id: 'kalita-wave',
@@ -21,8 +21,8 @@ export const DEFAULT_GEAR: GearSet[] = [
     grindNote: '中細研磨 (Medium-Fine)',
     dripper: 'Kalita Wave 155',
     filter: '波浪濾紙',
-    waterPpm: 90,
-    waterNote: 'Third Wave Water'
+    waterSource: '過濾水',
+    waterNote: ''
   },
   {
     id: 'hario-switch',
@@ -32,7 +32,7 @@ export const DEFAULT_GEAR: GearSet[] = [
     grindNote: '中研磨 (Medium)',
     dripper: 'Hario Switch 02',
     filter: 'V60 錐形濾紙',
-    waterPpm: 110,
-    waterNote: '過濾自來水'
+    waterSource: '礦泉水',
+    waterNote: ''
   }
 ]

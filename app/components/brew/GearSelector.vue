@@ -5,7 +5,7 @@ const items = computed(() => [
   { icon: 'device_thermostat', label: '水溫', value: `${selected.value.temperature}°C` },
   { icon: 'grain', label: '研磨', value: selected.value.grind },
   { icon: 'filter_vintage', label: '濾杯', value: selected.value.dripper },
-  { icon: 'water_drop', label: '水質', value: `${selected.value.waterPpm} ppm` }
+  { icon: 'water_drop', label: '水源', value: selected.value.waterSource || '—' }
 ])
 </script>
 

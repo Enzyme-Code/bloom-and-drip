@@ -19,7 +19,7 @@ const grind = field('grind')
 const grindNote = field('grindNote')
 const dripper = field('dripper')
 const filter = field('filter')
-const waterPpm = field('waterPpm')
+const waterSource = field('waterSource')
 const waterNote = field('waterNote')
 
 function onRemove() {
@@ -56,7 +56,7 @@ function onRemove() {
       <BrewParamCard v-model:value="temperature" editing icon="device_thermostat" label="注水水溫" suffix="°C" numeric />
       <BrewParamCard v-model:value="grind" v-model:note="grindNote" editing icon="grain" label="研磨刻度" />
       <BrewParamCard v-model:value="dripper" v-model:note="filter" editing icon="filter_vintage" label="萃取濾杯" />
-      <BrewParamCard v-model:value="waterPpm" v-model:note="waterNote" editing icon="water_drop" label="沖煮水質" suffix="ppm" numeric />
+      <BrewParamCard v-model:value="waterSource" v-model:note="waterNote" editing icon="water_drop" label="水源" />
     </div>
 
     <div class="flex items-center justify-end gap-3 text-[12px]">

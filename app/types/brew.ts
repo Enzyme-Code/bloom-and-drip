@@ -33,7 +33,8 @@ export interface BrewParams {
   grindNote: string
   dripper: string
   filter: string
-  waterPpm: number
+  /** 水源, e.g. 過濾水 / Third Wave Water */
+  waterSource: string
   waterNote: string
 }
 
