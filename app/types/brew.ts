@@ -42,6 +42,8 @@ export interface BrewParams {
 export interface GearSet extends BrewParams {
   id: string
   name: string
+  /** Position on the gear page / in the selector (absent on gear saved before reordering existed) */
+  order?: number
 }
 
 /** 悶蒸 / 浸泡注水 / 注水 / 斷水等待 / 滴濾 */

@@ -4,6 +4,7 @@ import type { GearSet } from '~/types/brew'
 export const DEFAULT_GEAR: GearSet[] = [
   {
     id: 'v60-daily',
+    order: 0,
     name: 'V60 日常',
     temperature: 92,
     grind: 'C40 24 格',
@@ -15,6 +16,7 @@ export const DEFAULT_GEAR: GearSet[] = [
   },
   {
     id: 'kalita-wave',
+    order: 1,
     name: 'Kalita 波浪',
     temperature: 93,
     grind: 'C40 22 格',
@@ -26,6 +28,7 @@ export const DEFAULT_GEAR: GearSet[] = [
   },
   {
     id: 'hario-switch',
+    order: 2,
     name: 'Switch 浸泡',
     temperature: 90,
     grind: 'C40 26 格',

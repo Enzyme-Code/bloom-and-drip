@@ -2,7 +2,7 @@
 useHead({ title: '器具設備 — Bloom & Drip' })
 
 const { user } = useAuth()
-const { gearSets, selectedId, select, add, remove } = useGear()
+const { gearSets, selectedId, select, add, remove, move } = useGear()
 const { logs } = useBrewLogs()
 const toast = useToast()
 
@@ -55,18 +55,21 @@ function onSelect(id: string) {
         </p>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-space-md">
+      <TransitionGroup tag="div" move-class="transition-transform duration-300" class="grid grid-cols-1 lg:grid-cols-2 gap-space-md">
         <GearCard
-          v-for="g in gearSets"
+          v-for="(g, i) in gearSets"
           :key="g.id"
           :gear="g"
           :active="g.id === selectedId"
           :removable="gearSets.length > 1"
+          :first="i === 0"
+          :last="i === gearSets.length - 1"
           @select="onSelect(g.id)"
           @duplicate="onDuplicate(g.id)"
           @remove="remove(g.id)"
+          @move="move(g.id, $event)"
         />
-      </div>
+      </TransitionGroup>
 
       <section v-if="user" class="rounded-xl bg-surface-container-low p-space-lg flex flex-col gap-space-sm">
         <span class="text-label-md uppercase tracking-wider text-primary">濾杯使用紀錄</span>

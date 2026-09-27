@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { GearSet } from '~/types/brew'
 
-const props = defineProps<{ gear: GearSet; active: boolean; removable: boolean }>()
-const emit = defineEmits<{ select: []; duplicate: []; remove: [] }>()
+const props = defineProps<{ gear: GearSet; active: boolean; removable: boolean; first: boolean; last: boolean }>()
+const emit = defineEmits<{ select: []; duplicate: []; remove: []; move: [delta: -1 | 1] }>()
 const { update } = useGear()
 
 /** Two-way binding for one field that writes through useGear.update */
@@ -59,7 +59,27 @@ function onRemove() {
       <BrewParamCard v-model:value="waterSource" v-model:note="waterNote" editing icon="water_drop" label="水源" />
     </div>
 
-    <div class="flex items-center justify-end gap-3 text-[12px]">
+    <div class="flex items-center gap-3 text-[12px]">
+      <div class="flex items-center gap-1 mr-auto">
+        <button
+          type="button"
+          class="inline-flex items-center gap-0.5 px-2 py-1 rounded-lg bg-surface-container text-on-surface-variant hover:bg-surface-container-high disabled:opacity-30 disabled:hover:bg-surface-container"
+          :disabled="first"
+          :aria-label="`將「${gear.name}」上移`"
+          @click="emit('move', -1)"
+        >
+          <span class="icon text-[16px]">arrow_upward</span>上移
+        </button>
+        <button
+          type="button"
+          class="inline-flex items-center gap-0.5 px-2 py-1 rounded-lg bg-surface-container text-on-surface-variant hover:bg-surface-container-high disabled:opacity-30 disabled:hover:bg-surface-container"
+          :disabled="last"
+          :aria-label="`將「${gear.name}」下移`"
+          @click="emit('move', 1)"
+        >
+          <span class="icon text-[16px]">arrow_downward</span>下移
+        </button>
+      </div>
       <button type="button" class="inline-flex items-center gap-1 text-on-surface-variant hover:text-primary" @click="emit('duplicate')">
         <span class="icon text-[16px]">content_copy</span>複製
       </button>
