@@ -15,8 +15,7 @@ const chips = computed(() =>
     bean.value.process && { text: bean.value.process, tone: 'strong' },
     bean.value.roaster && { text: bean.value.roaster, tone: 'accent' },
     bean.value.roast && { text: bean.value.roast, tone: 'muted' },
-    bean.value.bloomSeconds && { text: `建議悶蒸 ${bean.value.bloomSeconds}s`, tone: 'muted' },
-    bean.value.altitude && { text: `產區海拔 ${Number(bean.value.altitude).toLocaleString()}m`, tone: 'muted' }
+    bean.value.bloomSeconds && { text: `建議悶蒸 ${bean.value.bloomSeconds}s`, tone: 'muted' }
   ].filter(Boolean) as { text: string; tone: 'strong' | 'accent' | 'muted' }[]
 )
 
@@ -51,19 +50,14 @@ function onBlank() {
   startEditing()
 }
 
-/** Number inputs: keep empty as null (altitude) / 0 (bloom) rather than NaN */
-function numberModel(key: 'bloomSeconds' | 'altitude') {
-  return computed({
-    get: () => bean.value[key] ?? '',
-    set: (v: string | number) => {
-      const n = v === '' ? null : Number(v)
-      if (key === 'altitude') bean.value.altitude = n != null && Number.isFinite(n) ? n : null
-      else bean.value.bloomSeconds = n != null && Number.isFinite(n) ? n : 0
-    }
-  })
-}
-const bloomModel = numberModel('bloomSeconds')
-const altitudeModel = numberModel('altitude')
+/** Bloom seconds input: empty or invalid becomes 0 rather than NaN */
+const bloomModel = computed({
+  get: () => bean.value.bloomSeconds || '',
+  set: (v: string | number) => {
+    const n = Number(v)
+    bean.value.bloomSeconds = v !== '' && Number.isFinite(n) ? n : 0
+  }
+})
 
 const fieldClass = 'w-full px-3 py-2 rounded-lg bg-surface-container-lowest text-body-sm text-on-surface placeholder:text-outline/70 focus:outline-none focus:ring-1 focus:ring-secondary'
 const labelClass = 'flex flex-col gap-1 text-[11px] font-semibold text-on-surface-variant'
@@ -139,16 +133,10 @@ const labelClass = 'flex flex-col gap-1 text-[11px] font-semibold text-on-surfac
           焙度
           <input v-model="bean.roast" :class="fieldClass" list="bean-roast-options" placeholder="例：淺焙" maxlength="40">
         </label>
-        <div class="grid grid-cols-2 gap-3">
-          <label :class="labelClass">
-            悶蒸 (秒)
-            <input v-model="bloomModel" type="number" min="0" max="120" inputmode="numeric" :class="fieldClass">
-          </label>
-          <label :class="labelClass">
-            海拔 (m)
-            <input v-model="altitudeModel" type="number" min="0" max="3000" inputmode="numeric" :class="fieldClass" placeholder="選填">
-          </label>
-        </div>
+        <label :class="labelClass">
+          悶蒸 (秒)
+          <input v-model="bloomModel" type="number" min="0" max="120" inputmode="numeric" :class="fieldClass">
+        </label>
         <datalist id="bean-process-options">
           <option v-for="o in PROCESS_SUGGESTIONS" :key="o" :value="o" />
         </datalist>

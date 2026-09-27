@@ -8,7 +8,6 @@ export interface BeanInfo {
   roaster: string
   roast: string
   bloomSeconds: number
-  altitude: number | null
 }
 
 /**
@@ -99,8 +98,8 @@ export interface BrewLog {
   id: string
   /** ISO timestamp, used for ordering */
   createdAt: string
-  /** Older logs lack bloomSeconds / altitude */
-  bean: Pick<BeanInfo, 'name' | 'nameEn' | 'process' | 'roaster' | 'roast'> & Partial<Pick<BeanInfo, 'bloomSeconds' | 'altitude'>>
+  /** Older logs lack bloomSeconds (and may still carry a retired altitude field) */
+  bean: Pick<BeanInfo, 'name' | 'nameEn' | 'process' | 'roaster' | 'roast'> & Partial<Pick<BeanInfo, 'bloomSeconds'>>
   dose: number
   water: number
   params: BrewParams

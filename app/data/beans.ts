@@ -10,7 +10,6 @@ export const BEAN_TEMPLATES: BeanTemplate[] = [
     roaster: 'NOMAD ROASTERS',
     roast: '淺焙 Light Roast',
     bloomSeconds: 35,
-    altitude: 2150,
     recommended: { dose: 16, ratio: 15 }
   },
   {
@@ -21,7 +20,6 @@ export const BEAN_TEMPLATES: BeanTemplate[] = [
     roaster: 'SIMPLE KAFFA',
     roast: '淺中焙 Light-Medium',
     bloomSeconds: 30,
-    altitude: 1800,
     recommended: { dose: 15, ratio: 16 }
   },
   {
@@ -32,7 +30,6 @@ export const BEAN_TEMPLATES: BeanTemplate[] = [
     roaster: 'FIKA FIKA',
     roast: '中焙 Medium Roast',
     bloomSeconds: 40,
-    altitude: 1750,
     recommended: { dose: 18, ratio: 14 }
   }
 ]
@@ -43,8 +40,7 @@ export const BLANK_BEAN: BeanInfo = {
   process: '',
   roaster: '',
   roast: '',
-  bloomSeconds: 35,
-  altitude: null
+  bloomSeconds: 35
 }
 
 export const PROCESS_SUGGESTIONS = ['日曬', '水洗', '蜜處理', '厭氧發酵', '半水洗', '濕剝法']

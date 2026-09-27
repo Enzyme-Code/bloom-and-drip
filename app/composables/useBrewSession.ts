@@ -18,8 +18,8 @@ export function cloneMethod(m: BrewMethod): BrewMethod {
   return { name: m.name, steps: m.steps.map(s => ({ ...s, id: newStepId() })) }
 }
 
-function toBeanInfo({ name, nameEn, process, roaster, roast, bloomSeconds, altitude }: BeanTemplate): BeanInfo {
-  return { name, nameEn, process, roaster, roast, bloomSeconds, altitude }
+function toBeanInfo({ name, nameEn, process, roaster, roast, bloomSeconds }: BeanTemplate): BeanInfo {
+  return { name, nameEn, process, roaster, roast, bloomSeconds }
 }
 
 /** Firestore doc id for a bean's saved recipe: users/{uid}/presets/{key}. Beans are identified by name. */

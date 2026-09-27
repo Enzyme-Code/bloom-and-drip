@@ -23,8 +23,7 @@ export function useBrewSave() {
         process: b.process.trim(),
         roaster: b.roaster.trim(),
         roast: b.roast.trim(),
-        bloomSeconds: Number(b.bloomSeconds) || 0,
-        altitude: b.altitude ? Number(b.altitude) : null
+        bloomSeconds: Number(b.bloomSeconds) || 0
       },
       dose: session.dose.value,
       water: session.water.value,
