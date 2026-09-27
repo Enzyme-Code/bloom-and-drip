@@ -1,0 +1,152 @@
+@import "tailwindcss";
+
+@theme {
+  --color-surface-container-high: #ece7e3;
+  --color-primary-fixed: #fadcd5;
+  --color-primary: #0e0402;
+  --color-surface-container-highest: #e6e2de;
+  --color-surface-bright: #fef8f4;
+  --color-error: #ba1a1a;
+  --color-outline: #817471;
+  --color-inverse-surface: #32302e;
+  --color-surface: #fef8f4;
+  --color-primary-container: #2b1b17;
+  --color-surface-tint: #6f5954;
+  --color-on-secondary-fixed: #2e1500;
+  --color-inverse-primary: #ddc0ba;
+  --color-outline-variant: #d3c3c0;
+  --color-secondary-container: #ffbf87;
+  --color-on-primary-container: #9a817b;
+  --color-surface-variant: #e6e2de;
+  --color-surface-dim: #ded9d5;
+  --color-on-primary: #ffffff;
+  --color-on-background: #1d1b19;
+  --color-inverse-on-surface: #f5f0ec;
+  --color-surface-container-lowest: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-surface-container-low: #f8f3ef;
+  --color-surface-container: #f2ede9;
+  --color-on-secondary-fixed-variant: #683d0f;
+  --color-on-secondary: #ffffff;
+  --color-secondary-fixed-dim: #f9ba82;
+  --color-background: #fef8f4;
+  --color-secondary: #835425;
+  --color-on-surface: #1d1b19;
+  --color-secondary-fixed: #ffdcc1;
+  --color-on-surface-variant: #4f4442;
+  --color-on-secondary-container: #7a4b1e;
+
+  --radius-DEFAULT: 0.125rem;
+  --radius-sm: 0.125rem;
+  --radius: 0.125rem;
+  --radius-lg: 0.25rem;
+  --radius-xl: 0.5rem;
+
+  --spacing-space-xs: 0.25rem;
+  --spacing-space-sm: 0.5rem;
+  --spacing-space-md: 1rem;
+  --spacing-space-lg: 1.5rem;
+  --spacing-space-xl: 2.5rem;
+  --spacing-gutter: 1.5rem;
+  --spacing-margin: 3rem;
+  --spacing-margin-mobile: 1.25rem;
+
+  --font-sans: "Manrope", "Noto Sans TC", system-ui, sans-serif;
+  --font-serif: "Newsreader", "Noto Serif TC", serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --text-display-timer: 64px;
+  --text-display-timer--line-height: 72px;
+  --text-display-timer--letter-spacing: -0.04em;
+  --text-display-timer-mobile: 44px;
+  --text-display-timer-mobile--line-height: 52px;
+  --text-display-timer-mobile--letter-spacing: -0.03em;
+  --text-headline-lg: 40px;
+  --text-headline-lg--line-height: 48px;
+  --text-headline-lg--letter-spacing: -0.02em;
+  --text-headline-lg-mobile: 30px;
+  --text-headline-lg-mobile--line-height: 36px;
+  --text-headline-md: 28px;
+  --text-headline-md--line-height: 36px;
+  --text-headline-sm: 22px;
+  --text-headline-sm--line-height: 28px;
+  --text-body-lg: 18px;
+  --text-body-lg--line-height: 28px;
+  --text-body-md: 15px;
+  --text-body-md--line-height: 24px;
+  --text-body-sm: 13px;
+  --text-body-sm--line-height: 20px;
+  --text-label-md: 12px;
+  --text-label-md--line-height: 16px;
+  --text-label-md--letter-spacing: 0.04em;
+  --text-label-md--font-weight: 600;
+  --text-label-mono: 11px;
+  --text-label-mono--line-height: 14px;
+  --text-label-mono--letter-spacing: 0.06em;
+  --text-metric-val: 20px;
+  --text-metric-val--line-height: 24px;
+  --text-metric-val--letter-spacing: -0.02em;
+}
+
+@layer base {
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+  }
+  body {
+    @apply bg-surface text-on-surface font-sans text-body-md antialiased;
+    overscroll-behavior: none;
+  }
+  ::selection {
+    @apply bg-secondary-fixed text-on-secondary-fixed;
+  }
+  button:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+@utility icon {
+  font-family: "Material Symbols Outlined";
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+
+@utility icon-fill {
+  font-variation-settings: "FILL" 1;
+}
+
+/* Range slider matching the sensory bars */
+@utility range-bar {
+  appearance: none;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: linear-gradient(to right, var(--color-secondary) var(--fill, 0%), var(--color-surface-container) var(--fill, 0%));
+  outline: none;
+  &::-webkit-slider-thumb {
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 9999px;
+    background: var(--color-surface-container-lowest);
+    border: 3px solid var(--color-secondary);
+    cursor: pointer;
+  }
+  &::-moz-range-thumb {
+    width: 10px;
+    height: 10px;
+    border-radius: 9999px;
+    background: var(--color-surface-container-lowest);
+    border: 3px solid var(--color-secondary);
+    cursor: pointer;
+  }
+}

@@ -1,0 +1,162 @@
+<script setup lang="ts">
+import { BLANK_BEAN, PROCESS_SUGGESTIONS, ROAST_SUGGESTIONS } from '~/data/beans'
+import type { BeanInfo, Recipe } from '~/types/brew'
+
+const { bean, selectBean } = useBrewSession()
+const { status } = useBrewTimer()
+const toast = useToast()
+
+const editing = useState('bean-editing', () => false)
+const nameInput = ref<HTMLInputElement>()
+
+const displayName = computed(() => bean.value.name.trim() || '未命名咖啡豆')
+const chips = computed(() =>
+  [
+    bean.value.process && { text: bean.value.process, tone: 'strong' },
+    bean.value.roaster && { text: bean.value.roaster, tone: 'accent' },
+    bean.value.roast && { text: bean.value.roast, tone: 'muted' },
+    bean.value.bloomSeconds && { text: `建議悶蒸 ${bean.value.bloomSeconds}s`, tone: 'muted' },
+    bean.value.altitude && { text: `產區海拔 ${Number(bean.value.altitude).toLocaleString()}m`, tone: 'muted' }
+  ].filter(Boolean) as { text: string; tone: 'strong' | 'accent' | 'muted' }[]
+)
+
+const chipClass = {
+  strong: 'bg-surface-container-highest text-primary font-medium',
+  accent: 'bg-secondary-fixed/50 text-on-secondary-fixed font-medium',
+  muted: 'bg-surface-container-highest text-on-surface-variant'
+}
+
+async function startEditing() {
+  editing.value = true
+  await nextTick()
+  nameInput.value?.focus()
+}
+
+function blockWhileRunning() {
+  if (status.value !== 'running') return false
+  toast.show('沖煮進行中，請先暫停再更換咖啡豆', 'info')
+  return true
+}
+
+function onPick(info: BeanInfo, recipe?: Recipe) {
+  if (blockWhileRunning()) return
+  selectBean(info, recipe)
+  editing.value = false
+  toast.show(recipe ? `已帶入 ${info.name} 上次的配方` : `已選擇 ${info.name}`, 'swap_horiz')
+}
+
+function onBlank() {
+  if (blockWhileRunning()) return
+  selectBean(BLANK_BEAN)
+  startEditing()
+}
+
+/** Number inputs: keep empty as null (altitude) / 0 (bloom) rather than NaN */
+function numberModel(key: 'bloomSeconds' | 'altitude') {
+  return computed({
+    get: () => bean.value[key] ?? '',
+    set: (v: string | number) => {
+      const n = v === '' ? null : Number(v)
+      if (key === 'altitude') bean.value.altitude = n != null && Number.isFinite(n) ? n : null
+      else bean.value.bloomSeconds = n != null && Number.isFinite(n) ? n : 0
+    }
+  })
+}
+const bloomModel = numberModel('bloomSeconds')
+const altitudeModel = numberModel('altitude')
+
+const fieldClass = 'w-full px-3 py-2 rounded-lg bg-surface-container-lowest text-body-sm text-on-surface placeholder:text-outline/70 focus:outline-none focus:ring-1 focus:ring-secondary'
+const labelClass = 'flex flex-col gap-1 text-[11px] font-semibold text-on-surface-variant'
+</script>
+
+<template>
+  <section class="w-full px-margin-mobile md:px-margin pt-space-md pb-space-md md:pb-space-lg">
+    <div class="rounded-xl bg-surface-container p-4 md:p-space-md shadow-sm flex flex-col gap-space-md">
+      <!-- Summary -->
+      <div class="flex items-start md:items-center justify-between gap-3">
+        <div class="flex items-center gap-space-md min-w-0">
+          <div class="hidden md:flex w-12 h-12 rounded-xl bg-secondary-container/40 items-center justify-center shrink-0">
+            <span class="icon text-secondary text-2xl">coffee</span>
+          </div>
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 mb-1">
+              <span class="font-serif text-headline-sm tracking-tight" :class="bean.name.trim() ? 'text-primary' : 'text-outline italic'">
+                {{ displayName }}
+              </span>
+              <span v-if="bean.nameEn" class="font-mono text-label-mono text-outline">{{ bean.nameEn }}</span>
+            </div>
+            <div v-if="chips.length" class="flex flex-wrap items-center gap-1.5 font-mono text-[11px]">
+              <span v-for="c in chips" :key="c.text" class="px-2 py-0.5 rounded-sm" :class="chipClass[c.tone]">{{ c.text }}</span>
+            </div>
+            <p v-else-if="!editing" class="text-body-sm text-outline">點「編輯」填寫產區、處理法、烘豆商等資訊</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            class="inline-flex items-center gap-1.5 h-10 md:h-auto px-3 md:py-1.5 rounded-lg text-body-sm transition-colors"
+            :class="editing ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface hover:bg-surface-container-highest'"
+            :aria-label="editing ? '完成編輯' : '編輯咖啡豆'"
+            @click="editing ? (editing = false) : startEditing()"
+          >
+            <span class="icon text-[18px] md:text-[16px]">{{ editing ? 'check' : 'edit' }}</span>
+            <span class="hidden md:inline">{{ editing ? '完成' : '編輯' }}</span>
+          </button>
+          <BrewBeanPicker v-slot="{ toggle }" @pick="onPick" @blank="onBlank">
+            <button
+              type="button"
+              class="inline-flex items-center gap-1.5 h-10 md:h-auto px-3 md:py-1.5 rounded-lg bg-surface-container-high text-on-surface text-body-sm hover:bg-surface-container-highest transition-colors"
+              aria-label="更換咖啡豆"
+              @click.stop="toggle()"
+            >
+              <span class="icon text-[18px] md:text-[16px]">swap_horiz</span>
+              <span class="hidden md:inline">更換咖啡豆</span>
+            </button>
+          </BrewBeanPicker>
+        </div>
+      </div>
+
+      <!-- Editor -->
+      <form v-if="editing" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3" @submit.prevent="editing = false">
+        <label :class="[labelClass, 'sm:col-span-2']">
+          品名
+          <input ref="nameInput" v-model="bean.name" :class="fieldClass" placeholder="例：衣索比亞 耶加雪菲 潔蒂普" maxlength="80">
+        </label>
+        <label :class="[labelClass, 'sm:col-span-2']">
+          產區 / 英文品名
+          <input v-model="bean.nameEn" :class="fieldClass" placeholder="例：Ethiopia Yirgacheffe Gedeb" maxlength="80">
+        </label>
+        <label :class="labelClass">
+          處理法
+          <input v-model="bean.process" :class="fieldClass" list="bean-process-options" placeholder="例：日曬" maxlength="40">
+        </label>
+        <label :class="labelClass">
+          烘豆商
+          <input v-model="bean.roaster" :class="fieldClass" placeholder="例：Nomad Roasters" maxlength="40">
+        </label>
+        <label :class="labelClass">
+          焙度
+          <input v-model="bean.roast" :class="fieldClass" list="bean-roast-options" placeholder="例：淺焙" maxlength="40">
+        </label>
+        <div class="grid grid-cols-2 gap-3">
+          <label :class="labelClass">
+            悶蒸 (秒)
+            <input v-model="bloomModel" type="number" min="0" max="120" inputmode="numeric" :class="fieldClass">
+          </label>
+          <label :class="labelClass">
+            海拔 (m)
+            <input v-model="altitudeModel" type="number" min="0" max="3000" inputmode="numeric" :class="fieldClass" placeholder="選填">
+          </label>
+        </div>
+        <datalist id="bean-process-options">
+          <option v-for="o in PROCESS_SUGGESTIONS" :key="o" :value="o" />
+        </datalist>
+        <datalist id="bean-roast-options">
+          <option v-for="o in ROAST_SUGGESTIONS" :key="o" :value="o" />
+        </datalist>
+        <button type="submit" class="hidden" />
+      </form>
+    </div>
+  </section>
+</template>
