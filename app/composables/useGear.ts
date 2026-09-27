@@ -11,6 +11,23 @@ const pendingWrites = new Map<string, ReturnType<typeof setTimeout>>()
 
 const cloneDefaults = () => DEFAULT_GEAR.map(g => ({ ...g }))
 
+/** User-defined order first; gear without an order (saved before reordering existed) goes last, by name */
+function byOrder(a: GearSet, b: GearSet) {
+  return (a.order ?? Number.MAX_SAFE_INTEGER) - (b.order ?? Number.MAX_SAFE_INTEGER) || a.name.localeCompare(b.name, 'zh-Hant')
+}
+
+/** Gear saved before 水源 replaced 水質 (ppm): the water name lived in waterNote and the TDS in waterPpm */
+function fromDoc(id: string, data: Record<string, unknown>): GearSet {
+  const gear = { ...(data as Omit<GearSet, 'id'>), id }
+  if (gear.waterSource === undefined) {
+    const ppm = data.waterPpm
+    gear.waterSource = String(data.waterNote ?? '')
+    gear.waterNote = typeof ppm === 'number' ? `TDS ${ppm} ppm` : ''
+  }
+  delete (gear as Record<string, unknown>).waterPpm
+  return gear
+}
+
 function readSelected() {
   try {
     return localStorage.getItem(SELECTED_KEY)
@@ -58,8 +75,8 @@ export function useGear() {
             const local = new Map(gearSets.value.map(g => [g.id, g]))
             gearSets.value = snap.docs
               // Keep the local copy while an edit is still waiting to be written
-              .map(d => (pendingWrites.has(d.id) && local.get(d.id)) || { ...(d.data() as Omit<GearSet, 'id'>), id: d.id })
-              .sort((a, b) => a.name.localeCompare(b.name, 'zh-Hant'))
+              .map(d => (pendingWrites.has(d.id) && local.get(d.id)) || fromDoc(d.id, d.data()))
+              .sort(byOrder)
           }, err => console.error('[gear]', err))
         },
         { immediate: true }
@@ -106,10 +123,26 @@ export function useGear() {
   }
 
   function add(from: GearSet = selected.value) {
-    const gear: GearSet = { ...from, id: `g${Date.now().toString(36)}`, name: `${from.name} 副本` }
+    const order = Math.max(-1, ...gearSets.value.map((g, i) => g.order ?? i)) + 1
+    const gear: GearSet = { ...from, id: `g${Date.now().toString(36)}`, name: `${from.name} 副本`, order }
     gearSets.value = [...gearSets.value, gear]
     persist(gear)
     return gear
+  }
+
+  /** Moves a gear set up / down one place and saves the new order of every set whose position changed */
+  function move(id: string, delta: -1 | 1) {
+    const list = [...gearSets.value]
+    const i = list.findIndex(g => g.id === id)
+    const j = i + delta
+    if (i < 0 || j < 0 || j >= list.length) return
+    ;[list[i], list[j]] = [list[j]!, list[i]!]
+    gearSets.value = list.map((g, index) => {
+      if (g.order === index) return g
+      const next = { ...g, order: index }
+      persist(next)
+      return next
+    })
   }
 
   function remove(id: string) {
@@ -125,5 +158,5 @@ export function useGear() {
     if (gearSets.value.some(g => g.id === id)) selectedId.value = id
   }
 
-  return { gearSets, selectedId, selected, params, update, add, remove, select }
+  return { gearSets, selectedId, selected, params, update, add, remove, move, select }
 }

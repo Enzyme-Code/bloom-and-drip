@@ -23,8 +23,7 @@ export function useBrewSave() {
         process: b.process.trim(),
         roaster: b.roaster.trim(),
         roast: b.roast.trim(),
-        bloomSeconds: Number(b.bloomSeconds) || 0,
-        altitude: b.altitude ? Number(b.altitude) : null
+        bloomSeconds: Number(b.bloomSeconds) || 0
       },
       dose: session.dose.value,
       water: session.water.value,
@@ -71,33 +70,5 @@ export function useBrewSave() {
     session.resetSensory()
   }
 
-  function summary() {
-    const log = buildLog()
-    return [
-      `☕ ${log.bean.name}`,
-      `${log.dose}g / ${log.water}g (1:${session.ratio.value}) · ${log.params.temperature}°C · ${log.params.grind}`,
-      `⏱ ${formatTime(log.totalSeconds)} · ${log.params.dripper}`,
-      log.overall ? `★ ${log.overall.toFixed(1)}` : '',
-      log.flavors.length ? `風味：${log.flavors.join('、')}` : '',
-      log.notes
-    ]
-      .filter(Boolean)
-      .join('\n')
-  }
-
-  async function share() {
-    const text = summary()
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: 'Bloom & Drip 沖煮紀錄', text })
-      } else {
-        await navigator.clipboard.writeText(text)
-        toast.show('已複製沖煮摘要', 'content_copy')
-      }
-    } catch {
-      // Share sheet dismissed
-    }
-  }
-
-  return { save, discard, share }
+  return { save, discard }
 }

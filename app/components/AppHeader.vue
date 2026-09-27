@@ -4,10 +4,10 @@ const { user } = useAuth()
 const router = useRouter()
 
 const NAV = [
-  { to: '/', label: '即時沖煮紀錄', mobileTitle: 'Log Entry' },
-  { to: '/journal', label: '沖煮歷史與日誌', mobileTitle: 'Journal' },
-  { to: '/flavors', label: '風味庫', mobileTitle: 'Flavors' },
-  { to: '/gear', label: '器具設備', mobileTitle: 'Gear' }
+  { to: '/', label: '即時沖煮紀錄', mobileTitle: '沖煮紀錄' },
+  { to: '/journal', label: '沖煮歷史與日誌', mobileTitle: '沖煮日誌' },
+  { to: '/flavors', label: '風味庫', mobileTitle: '風味庫' },
+  { to: '/gear', label: '器具設備', mobileTitle: '器具設備' }
 ]
 
 const mobileTitle = computed(() => NAV.find(n => n.to === route.path)?.mobileTitle ?? 'Bloom & Drip')

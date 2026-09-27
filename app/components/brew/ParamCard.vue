@@ -43,9 +43,9 @@ function onCardClick() {
         v-if="note !== undefined"
         v-model="note"
         placeholder="備註"
-        :class="[inputClass, 'hidden md:block text-[11px] text-on-surface-variant']"
+        :class="[inputClass, 'text-[12px] text-on-surface-variant']"
       >
-      <span v-else-if="hint" class="hidden md:block text-[11px] text-on-surface-variant">{{ hint }}</span>
+      <span v-else-if="hint" class="text-[11px] text-on-surface-variant">{{ hint }}</span>
     </template>
 
     <template v-else>

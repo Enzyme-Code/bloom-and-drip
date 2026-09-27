@@ -17,7 +17,14 @@ const recent = computed(() => {
     seen.add(log.bean.name)
     out.push({
       key: log.id,
-      info: { ...BLANK_BEAN, ...log.bean, altitude: log.bean.altitude ?? null, bloomSeconds: log.bean.bloomSeconds || BLANK_BEAN.bloomSeconds },
+      info: {
+        name: log.bean.name,
+        nameEn: log.bean.nameEn ?? '',
+        process: log.bean.process ?? '',
+        roaster: log.bean.roaster ?? '',
+        roast: log.bean.roast ?? '',
+        bloomSeconds: log.bean.bloomSeconds || BLANK_BEAN.bloomSeconds
+      },
       recipe: { dose: log.dose, ratio: round1(log.water / log.dose), gearId: log.gearId, method: log.method }
     })
     if (out.length >= 5) break

@@ -26,10 +26,11 @@ function stageDetail(i: number) {
 
 <template>
   <div class="rounded-xl bg-surface-container-high p-4 flex flex-col gap-4">
-    <div class="flex items-start justify-between gap-2">
-      <div class="flex items-start gap-2">
+    <div class="flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2 min-w-0">
         <span class="icon text-[18px] text-secondary">timer</span>
-        <span class="font-mono text-[11px] text-on-surface-variant uppercase tracking-wider">即時萃取碼錶 (Timer &amp; Stages)</span>
+        <span class="text-label-md text-primary">萃取計時</span>
+        <span class="font-mono text-[10px] text-outline uppercase tracking-wider">Timer</span>
       </div>
       <button
         type="button"
@@ -78,7 +79,7 @@ function stageDetail(i: number) {
       >
         <span class="flex items-center gap-2 min-w-0">
           <span class="icon text-[18px]" :class="{ 'animate-pulse': timer.stageStatus(i) === 'active' && status === 'running' }">{{ stageIcon(stage, timer.stageStatus(i)) }}</span>
-          <span class="truncate">{{ i + 1 }}. {{ stage.label }}</span>
+          <span class="truncate">{{ i + 1 }}. {{ stage.name }}</span>
         </span>
         <span class="font-mono text-[11px] font-normal shrink-0">{{ stageDetail(i) }}</span>
       </li>
@@ -101,7 +102,7 @@ function stageDetail(i: number) {
         @click="timer.nextStage"
       >
         <span class="icon text-[18px]">flag</span>
-        {{ status === 'idle' ? '開始' : '下一步' }}
+        下一步
       </button>
       <button
         type="button"

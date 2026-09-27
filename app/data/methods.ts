@@ -1,11 +1,11 @@
 import type { BrewMethod, MethodStep, StepType } from '~/types/brew'
 
-export const STEP_TYPES: { type: StepType; label: string; short: string; hint: string; hasWater: boolean }[] = [
-  { type: 'bloom', label: '悶蒸 (Bloom)', short: '悶蒸', hint: '濕潤粉層，讓二氧化碳排出', hasWater: true },
-  { type: 'soak', label: '浸泡注水 (Soak)', short: '浸泡', hint: '關閉閥門或慢注，讓粉水充分浸泡', hasWater: true },
-  { type: 'pour', label: '注水 (Pour)', short: '注水', hint: '中心細水流劃圈', hasWater: true },
-  { type: 'wait', label: '斷水等待 (Pause)', short: '斷水', hint: '停止注水，等待水位下降', hasWater: false },
-  { type: 'drawdown', label: '滴濾完成 (Drawdown)', short: '滴濾', hint: '等待滴濾結束，粉層平整無凹洞', hasWater: false }
+export const STEP_TYPES: { type: StepType; label: string; name: string; short: string; hint: string; hasWater: boolean }[] = [
+  { type: 'bloom', label: '悶蒸 (Bloom)', name: '悶蒸', short: '悶蒸', hint: '濕潤粉層，讓二氧化碳排出', hasWater: true },
+  { type: 'soak', label: '浸泡注水 (Soak)', name: '浸泡注水', short: '浸泡', hint: '關閉閥門或慢注，讓粉水充分浸泡', hasWater: true },
+  { type: 'pour', label: '注水 (Pour)', name: '注水', short: '注水', hint: '中心細水流劃圈', hasWater: true },
+  { type: 'wait', label: '斷水等待 (Pause)', name: '斷水等待', short: '斷水', hint: '停止注水，等待水位下降', hasWater: false },
+  { type: 'drawdown', label: '滴濾完成 (Drawdown)', name: '滴濾完成', short: '滴濾', hint: '等待滴濾結束，粉層平整無凹洞', hasWater: false }
 ]
 
 export const STEP_META = Object.fromEntries(STEP_TYPES.map(t => [t.type, t])) as Record<StepType, (typeof STEP_TYPES)[number]>

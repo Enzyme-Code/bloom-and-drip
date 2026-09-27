@@ -84,31 +84,29 @@ const isLastStage = computed(() => stageIndex.value === stages.value.length - 1 
       </div>
     </div>
 
-    <!-- Readouts -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-space-md items-end py-2 relative z-10">
-      <div class="flex flex-col">
-        <span class="font-mono text-[11px] text-on-primary-container uppercase tracking-wider mb-1">Total Time</span>
-        <div class="font-mono text-display-timer font-medium tabular-nums" :class="{ 'text-secondary-fixed-dim': overTime }">{{ formatTime(elapsed) }}</div>
-        <span class="font-mono text-xs text-secondary-fixed-dim mt-0.5">TARGET FINISH: {{ formatTime(targetFinish) }}</span>
+    <!-- Readouts: two halves on the same grid / inset as the 4-column step cards, so edges line up -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 px-space-sm relative z-10">
+      <div class="flex flex-col justify-center gap-1 py-2 min-w-0">
+        <span class="font-mono text-[11px] text-on-primary-container uppercase tracking-wider">Total Time</span>
+        <div class="font-mono text-display-timer leading-none font-medium tabular-nums" :class="{ 'text-secondary-fixed-dim': overTime }">{{ formatTime(elapsed) }}</div>
+        <span class="font-mono text-xs text-secondary-fixed-dim">TARGET FINISH: {{ formatTime(targetFinish) }}</span>
       </div>
 
-      <div class="flex flex-col">
-        <span class="font-mono text-[11px] text-on-primary-container uppercase tracking-wider mb-1">Stage Target / Total</span>
-        <div class="flex items-baseline gap-2">
-          <span class="font-mono text-display-timer text-secondary-fixed font-medium tabular-nums">
-            {{ currentTarget }}
+      <div class="flex flex-col justify-between gap-3 rounded-lg bg-surface-container-lowest/5 p-4 min-w-0">
+        <div class="flex items-center justify-between gap-2">
+          <span class="font-mono text-[11px] text-on-primary-container truncate">
+            {{ status === 'finished' ? '萃取完成' : `第 ${stageIndex + 1} 步・${currentStage.shortLabel}` }}
           </span>
-          <span class="font-mono text-base text-on-primary-container whitespace-nowrap">/ {{ water }}g</span>
+          <span class="flex items-baseline gap-1.5 font-mono text-[11px] text-on-primary-container shrink-0">
+            本段
+            <span class="text-xl font-medium text-on-primary tabular-nums">{{ status === 'idle' ? '00:00' : formatTime(stageElapsed) }}</span>
+          </span>
         </div>
-        <span class="font-mono text-xs text-secondary-fixed-dim mt-0.5">{{ currentStage.label }}</span>
-      </div>
-
-      <div class="flex flex-col bg-surface-container-lowest/5 p-3 rounded-lg">
-        <span class="font-mono text-[11px] text-on-primary-container mb-1">STAGE TIME (本段計時)</span>
-        <div class="flex items-baseline gap-1.5">
-          <span class="font-mono text-3xl font-medium tabular-nums">{{ status === 'idle' ? '00:00' : formatTime(stageElapsed) }}</span>
+        <div class="flex items-baseline gap-2 min-w-0">
+          <span class="font-mono text-5xl leading-none text-secondary-fixed font-medium tabular-nums">{{ currentTarget }}</span>
+          <span class="font-mono text-sm text-on-primary-container whitespace-nowrap">/ {{ water }}g</span>
         </div>
-        <span class="font-mono text-[10px] text-on-primary-container mt-2">{{ currentStage.hint }}</span>
+        <span class="text-[11px] text-on-primary-container truncate">{{ currentStage.hint }}</span>
       </div>
     </div>
 
@@ -222,7 +220,7 @@ const isLastStage = computed(() => stageIndex.value === stages.value.length - 1 
         @click="timer.nextStage"
       >
         <span class="icon text-[18px]">{{ isLastStage ? 'flag' : 'skip_next' }}</span>
-        {{ isLastStage ? '完成萃取 (Finish)' : status === 'idle' ? '開始並記錄 (Start)' : '下一步 (Next Step)' }}
+        {{ isLastStage ? '完成萃取 (Finish)' : '下一步 (Next Step)' }}
       </button>
       <button
         type="button"

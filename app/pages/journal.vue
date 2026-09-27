@@ -40,10 +40,16 @@ function onDelete(id: string) {
     </PageTitle>
 
     <div class="px-margin-mobile md:px-margin pt-space-md flex flex-col gap-space-lg">
-      <div class="grid grid-cols-3 gap-2 md:gap-space-md">
-        <div v-for="s in stats" :key="s.label" class="rounded-xl bg-surface-container p-3 md:p-space-md min-w-0">
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-space-md">
+        <!-- The favourite bean name is long: full row on mobile -->
+        <div
+          v-for="(s, i) in stats"
+          :key="s.label"
+          class="rounded-xl bg-surface-container p-3 md:p-space-md min-w-0"
+          :class="{ 'col-span-2 md:col-span-1': i === stats.length - 1 }"
+        >
           <p class="font-mono text-[10px] md:text-label-mono text-outline uppercase">{{ s.label }}</p>
-          <p class="font-mono text-metric-val md:text-2xl text-primary font-medium truncate mt-1">{{ s.value }}</p>
+          <p class="text-metric-val md:text-2xl text-primary font-medium mt-1 line-clamp-2" :class="i === stats.length - 1 ? 'font-serif' : 'font-mono'">{{ s.value }}</p>
         </div>
       </div>
 
@@ -86,7 +92,7 @@ function onDelete(id: string) {
             <img v-if="log.photo" :src="log.photo" alt="萃取影像" class="w-16 h-16 rounded-lg object-cover shrink-0">
           </div>
 
-          <div class="grid grid-cols-4 gap-2 font-mono">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono">
             <div class="rounded-lg bg-surface-container p-2">
               <p class="text-[10px] text-outline">粉水比</p>
               <p class="text-body-sm text-primary">{{ log.dose }}g / {{ log.water }}g</p>

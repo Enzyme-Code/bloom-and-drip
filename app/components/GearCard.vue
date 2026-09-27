@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { GearSet } from '~/types/brew'
 
-const props = defineProps<{ gear: GearSet; active: boolean; removable: boolean }>()
-const emit = defineEmits<{ select: []; duplicate: []; remove: [] }>()
+const props = defineProps<{ gear: GearSet; active: boolean; removable: boolean; first: boolean; last: boolean }>()
+const emit = defineEmits<{ select: []; duplicate: []; remove: []; move: [delta: -1 | 1] }>()
 const { update } = useGear()
 
 /** Two-way binding for one field that writes through useGear.update */
@@ -19,7 +19,7 @@ const grind = field('grind')
 const grindNote = field('grindNote')
 const dripper = field('dripper')
 const filter = field('filter')
-const waterPpm = field('waterPpm')
+const waterSource = field('waterSource')
 const waterNote = field('waterNote')
 
 function onRemove() {
@@ -52,14 +52,34 @@ function onRemove() {
       </button>
     </div>
 
-    <div class="grid grid-cols-2 gap-space-sm">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-space-sm">
       <BrewParamCard v-model:value="temperature" editing icon="device_thermostat" label="注水水溫" suffix="°C" numeric />
       <BrewParamCard v-model:value="grind" v-model:note="grindNote" editing icon="grain" label="研磨刻度" />
       <BrewParamCard v-model:value="dripper" v-model:note="filter" editing icon="filter_vintage" label="萃取濾杯" />
-      <BrewParamCard v-model:value="waterPpm" v-model:note="waterNote" editing icon="water_drop" label="沖煮水質" suffix="ppm" numeric />
+      <BrewParamCard v-model:value="waterSource" v-model:note="waterNote" editing icon="water_drop" label="水源" />
     </div>
 
-    <div class="flex items-center justify-end gap-3 text-[12px]">
+    <div class="flex items-center gap-3 text-[12px]">
+      <div class="flex items-center gap-1 mr-auto">
+        <button
+          type="button"
+          class="inline-flex items-center gap-0.5 px-2 py-1 rounded-lg bg-surface-container text-on-surface-variant hover:bg-surface-container-high disabled:opacity-30 disabled:hover:bg-surface-container"
+          :disabled="first"
+          :aria-label="`將「${gear.name}」上移`"
+          @click="emit('move', -1)"
+        >
+          <span class="icon text-[16px]">arrow_upward</span>上移
+        </button>
+        <button
+          type="button"
+          class="inline-flex items-center gap-0.5 px-2 py-1 rounded-lg bg-surface-container text-on-surface-variant hover:bg-surface-container-high disabled:opacity-30 disabled:hover:bg-surface-container"
+          :disabled="last"
+          :aria-label="`將「${gear.name}」下移`"
+          @click="emit('move', 1)"
+        >
+          <span class="icon text-[16px]">arrow_downward</span>下移
+        </button>
+      </div>
       <button type="button" class="inline-flex items-center gap-1 text-on-surface-variant hover:text-primary" @click="emit('duplicate')">
         <span class="icon text-[16px]">content_copy</span>複製
       </button>

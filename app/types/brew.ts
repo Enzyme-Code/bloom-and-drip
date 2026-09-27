@@ -8,7 +8,6 @@ export interface BeanInfo {
   roaster: string
   roast: string
   bloomSeconds: number
-  altitude: number | null
 }
 
 /**
@@ -34,7 +33,8 @@ export interface BrewParams {
   grindNote: string
   dripper: string
   filter: string
-  waterPpm: number
+  /** 水源, e.g. 過濾水 / Third Wave Water */
+  waterSource: string
   waterNote: string
 }
 
@@ -42,6 +42,8 @@ export interface BrewParams {
 export interface GearSet extends BrewParams {
   id: string
   name: string
+  /** Position on the gear page / in the selector (absent on gear saved before reordering existed) */
+  order?: number
 }
 
 /** 悶蒸 / 浸泡注水 / 注水 / 斷水等待 / 滴濾 */
@@ -68,7 +70,10 @@ export type StageStatus = 'done' | 'active' | 'pending'
 export interface BrewStage {
   key: string
   type: StepType
+  /** e.g. "注水 (Pour)" */
   label: string
+  /** Chinese-only name for tight spaces, e.g. "注水" / "滴濾完成" */
+  name: string
   shortLabel: string
   /** Target cumulative mass in grams; null for wait / drawdown */
   targetMass: number | null
@@ -99,8 +104,8 @@ export interface BrewLog {
   id: string
   /** ISO timestamp, used for ordering */
   createdAt: string
-  /** Older logs lack bloomSeconds / altitude */
-  bean: Pick<BeanInfo, 'name' | 'nameEn' | 'process' | 'roaster' | 'roast'> & Partial<Pick<BeanInfo, 'bloomSeconds' | 'altitude'>>
+  /** Older logs lack bloomSeconds (and may still carry a retired altitude field) */
+  bean: Pick<BeanInfo, 'name' | 'nameEn' | 'process' | 'roaster' | 'roast'> & Partial<Pick<BeanInfo, 'bloomSeconds'>>
   dose: number
   water: number
   params: BrewParams

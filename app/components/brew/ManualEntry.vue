@@ -37,13 +37,13 @@ const cardClass = computed(() => dark.value ? 'bg-surface-container-lowest/5' : 
 </script>
 
 <template>
-  <div class="flex flex-col gap-3">
-    <p class="font-mono text-[10px]" :class="labelClass">
-      看著你的秤填寫每段結束時的時間與累積水量，時間可輸入 2:45 或 165（秒）。沒填的欄位會略過。
+  <div class="flex flex-col gap-2.5">
+    <p class="text-[11px] leading-relaxed" :class="labelClass">
+      看著秤填寫每一步結束時的時間與累積水量。時間可輸入 2:45 或 165（秒），沒填的會略過。
     </p>
 
-    <label class="flex items-center gap-3 rounded-lg p-2.5" :class="cardClass">
-      <span class="font-mono text-[11px] shrink-0 w-20" :class="labelClass">總時間</span>
+    <label class="grid grid-cols-[4.5rem_minmax(0,1fr)] items-center gap-2 rounded-lg p-2" :class="cardClass">
+      <span class="text-[12px] font-semibold" :class="labelClass">總時間</span>
       <input
         v-model="draft.total"
         inputmode="numeric"
@@ -54,35 +54,36 @@ const cardClass = computed(() => dark.value ? 'bg-surface-container-lowest/5' : 
       >
     </label>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-      <div v-for="(stage, i) in stages" :key="stage.key" class="rounded-lg p-2.5 flex flex-col gap-1.5" :class="cardClass">
-        <span class="font-mono text-[11px] font-medium" :class="dark ? 'text-secondary-fixed' : 'text-secondary'">
+    <div class="rounded-lg p-2 flex flex-col gap-1.5" :class="cardClass">
+      <div class="grid grid-cols-[4.5rem_minmax(0,1fr)_minmax(0,1fr)] gap-2 px-0.5 font-mono text-[10px]" :class="labelClass">
+        <span>步驟</span><span>結束時間</span><span>累積水量 (g)</span>
+      </div>
+      <div
+        v-for="(stage, i) in stages"
+        :key="stage.key"
+        class="grid grid-cols-[4.5rem_minmax(0,1fr)_minmax(0,1fr)] items-center gap-2"
+      >
+        <span class="font-mono text-[12px] font-medium truncate" :class="dark ? 'text-secondary-fixed' : 'text-secondary'">
           {{ i + 1 }}・{{ stage.shortLabel }}
         </span>
-        <div class="grid gap-1.5" :class="stage.targetMass == null ? 'grid-cols-1' : 'grid-cols-2'">
-          <label class="flex flex-col gap-0.5">
-            <span class="font-mono text-[9px]" :class="labelClass">{{ stage.type === 'drawdown' ? '完成時間' : '結束時間' }}</span>
-            <input
-              v-model="draft.stages[i]!.t"
-              inputmode="numeric"
-              placeholder="0:00"
-              :class="[inputClass, { 'ring-1 ring-error': invalidTime(draft.stages[i]!.t) }]"
-              :aria-label="`${stage.label} 時間`"
-              @input="commit"
-            >
-          </label>
-          <label v-if="stage.targetMass != null" class="flex flex-col gap-0.5">
-            <span class="font-mono text-[9px]" :class="labelClass">累積水量 (g)</span>
-            <input
-              v-model="draft.stages[i]!.m"
-              inputmode="decimal"
-              :placeholder="String(stage.targetMass)"
-              :class="[inputClass, { 'ring-1 ring-error': invalidMass(draft.stages[i]!.m) }]"
-              :aria-label="`${stage.label} 累積水量`"
-              @input="commit"
-            >
-          </label>
-        </div>
+        <input
+          v-model="draft.stages[i]!.t"
+          inputmode="numeric"
+          :placeholder="stage.type === 'drawdown' ? '完成' : '0:00'"
+          :class="[inputClass, { 'ring-1 ring-error': invalidTime(draft.stages[i]!.t) }]"
+          :aria-label="`${stage.label} 時間`"
+          @input="commit"
+        >
+        <input
+          v-if="stage.targetMass != null"
+          v-model="draft.stages[i]!.m"
+          inputmode="decimal"
+          :placeholder="String(stage.targetMass)"
+          :class="[inputClass, { 'ring-1 ring-error': invalidMass(draft.stages[i]!.m) }]"
+          :aria-label="`${stage.label} 累積水量`"
+          @input="commit"
+        >
+        <span v-else class="px-2.5 font-mono text-sm" :class="labelClass">—</span>
       </div>
     </div>
   </div>

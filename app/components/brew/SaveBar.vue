@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const { savePreset } = useBrewSession()
 const { status } = useBrewTimer()
-const { save, discard, share } = useBrewSave()
+const { save, discard } = useBrewSave()
 const { user } = useAuth()
 const online = useOnline()
 const toast = useToast()
@@ -73,18 +73,10 @@ function onPreset() {
   </aside>
 
   <!-- Mobile -->
-  <aside class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-surface/95 backdrop-blur-md shadow-[0_-4px_20px_rgba(0,0,0,0.06)] px-margin-mobile py-3 flex gap-3">
+  <aside class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-surface/95 backdrop-blur-md shadow-[0_-4px_20px_rgba(0,0,0,0.06)] px-margin-mobile py-3">
     <button
       type="button"
-      class="w-14 h-12 rounded-lg bg-surface-container flex items-center justify-center shrink-0"
-      aria-label="分享"
-      @click="share"
-    >
-      <span class="icon text-[20px]">share</span>
-    </button>
-    <button
-      type="button"
-      class="flex-1 h-12 rounded-lg bg-primary text-on-primary text-body-md font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
+      class="w-full h-12 rounded-lg bg-primary text-on-primary text-body-md font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
       @click="save"
     >
       <span class="icon text-[20px]">{{ user ? 'note_add' : 'login' }}</span>
