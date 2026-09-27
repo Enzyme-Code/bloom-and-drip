@@ -4,9 +4,16 @@ const props = withDefaults(defineProps<{
   step?: number
   unit?: string
   size?: 'lg' | 'md'
-}>(), { step: 1, unit: 'g', size: 'lg' })
+  /** Custom +/- behaviour (e.g. water that moves the ratio in 0.5 steps); defaults to ±step */
+  stepBy?: (direction: 1 | -1) => void
+}>(), { step: 1, unit: 'g', size: 'lg', stepBy: undefined })
 
 const emit = defineEmits<{ 'update:modelValue': [value: number] }>()
+
+function bump(direction: 1 | -1) {
+  if (props.stepBy) props.stepBy(direction)
+  else emit('update:modelValue', props.modelValue + direction * props.step)
+}
 
 function onInput(e: Event) {
   const v = Number.parseFloat((e.target as HTMLInputElement).value)
@@ -22,7 +29,7 @@ function onInput(e: Event) {
       class="rounded bg-surface-container-highest text-primary flex items-center justify-center hover:bg-secondary hover:text-on-secondary transition-colors shrink-0"
       :class="size === 'lg' ? 'w-8 h-8' : 'w-7 h-7'"
       aria-label="減少"
-      @click="emit('update:modelValue', modelValue - step)"
+      @click="bump(-1)"
     >
       <span class="icon text-base">remove</span>
     </button>
@@ -43,7 +50,7 @@ function onInput(e: Event) {
       class="rounded bg-surface-container-highest text-primary flex items-center justify-center hover:bg-secondary hover:text-on-secondary transition-colors shrink-0"
       :class="size === 'lg' ? 'w-8 h-8' : 'w-7 h-7'"
       aria-label="增加"
-      @click="emit('update:modelValue', modelValue + step)"
+      @click="bump(1)"
     >
       <span class="icon text-base">add</span>
     </button>

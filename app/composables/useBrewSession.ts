@@ -67,6 +67,13 @@ export function useBrewSession() {
     water.value = round1(dose.value * r)
   }
 
+  /** Moves the ratio to the next 0.5 step (1:15 → 1:15.5), snapping first if it's between steps */
+  function stepRatio(direction: 1 | -1) {
+    const exact = water.value / dose.value
+    const snapped = direction > 0 ? Math.floor(exact * 2 + 1e-6) / 2 : Math.ceil(exact * 2 - 1e-6) / 2
+    setRatio(Math.min(25, Math.max(5, snapped + direction * 0.5)))
+  }
+
   function applyRecipe(p: Recipe) {
     dose.value = p.dose
     water.value = round1(p.dose * p.ratio)
@@ -183,6 +190,7 @@ export function useBrewSession() {
     setDose,
     setWater,
     setRatio,
+    stepRatio,
     loadRecommended,
     savePreset,
     selectBean,

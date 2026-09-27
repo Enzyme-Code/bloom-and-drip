@@ -1,8 +1,8 @@
 <script setup lang="ts">
-const { dose, water, ratio, setDose, setWater, setRatio } = useBrewSession()
+const { dose, water, ratio, setDose, setWater, setRatio, stepRatio } = useBrewSession()
 
 const DOSE_PRESETS = [15, 16, 18, 20]
-const RATIO_PRESETS = [14, 15, 16, 16.5]
+const RATIO_PRESETS = [10, 14, 15, 16, 18]
 
 /** SCA Golden Cup range is roughly 1:15 – 1:18 */
 const inGoldenCup = computed(() => ratio.value >= 15 && ratio.value <= 18)
@@ -73,7 +73,7 @@ const presetClass = (active: boolean) =>
           <span class="text-label-md text-on-surface-variant">總注水量 (Water Volume)</span>
           <span class="font-mono text-label-mono text-secondary">FINAL YIELD</span>
         </div>
-        <BrewStepper :model-value="water" :step="5" @update:model-value="setWater" />
+        <BrewStepper :model-value="water" :step-by="stepRatio" @update:model-value="setWater" />
         <div class="flex items-center justify-between pt-1">
           <span class="font-mono text-[10px] text-outline">注水倍率</span>
           <div class="flex gap-1 font-mono text-[11px]">
@@ -100,7 +100,7 @@ const presetClass = (active: boolean) =>
       </div>
       <div class="rounded-lg bg-surface-container p-3 flex flex-col gap-2 min-w-0">
         <span class="font-mono text-[11px] text-on-surface-variant">總注水量 (WATER)</span>
-        <BrewStepper :model-value="water" :step="5" size="md" @update:model-value="setWater" />
+        <BrewStepper :model-value="water" :step-by="stepRatio" size="md" @update:model-value="setWater" />
       </div>
     </div>
 
