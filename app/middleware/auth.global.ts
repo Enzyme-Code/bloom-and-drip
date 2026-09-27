@@ -1,14 +1,15 @@
-const PUBLIC_ROUTES = ['/login', '/register']
+/** Routes usable without an account: the brew tools and gear setup work for guests, saving requires sign-in */
+const PUBLIC_ROUTES = ['/', '/gear', '/login', '/register']
+const AUTH_PAGES = ['/login', '/register']
 
 export default defineNuxtRouteMiddleware(async (to) => {
   const { user, ready } = useAuth()
   await ready()
 
-  const isPublic = PUBLIC_ROUTES.includes(to.path)
-  if (!user.value && !isPublic) {
-    return navigateTo({ path: '/login', query: to.fullPath !== '/' ? { redirect: to.fullPath } : undefined })
+  if (!user.value && !PUBLIC_ROUTES.includes(to.path)) {
+    return navigateTo({ path: '/login', query: { redirect: to.fullPath } })
   }
-  if (user.value && isPublic) {
+  if (user.value && AUTH_PAGES.includes(to.path)) {
     return navigateTo('/')
   }
 })

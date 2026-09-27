@@ -13,7 +13,7 @@ const { toasts } = useToast()
       <div
         v-for="t in toasts"
         :key="t.id"
-        class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary-container text-on-primary shadow-lg text-body-sm"
+        class="flex items-center gap-2 max-w-[90vw] md:max-w-xl px-4 py-2.5 rounded-xl bg-primary-container text-on-primary shadow-lg text-body-sm"
       >
         <span class="icon text-[18px] text-secondary-fixed">{{ t.icon }}</span>
         {{ t.message }}

@@ -86,14 +86,14 @@ export function useBrewLogs() {
       })
       .catch((err) => {
         console.error('[brewLogs] write failed', err)
-        toast.show('雲端同步失敗，這筆紀錄未能儲存', 'error')
+        toast.show(`雲端同步失敗，這筆紀錄未能儲存：${firestoreErrorMessage(err)}`, 'error')
       })
   }
 
   function remove(id: string) {
     deleteDoc(doc(logsCol(requireUid()), id)).catch((err) => {
       console.error('[brewLogs] delete failed', err)
-      toast.show('刪除失敗，紀錄已還原', 'error')
+      toast.show(`刪除失敗，紀錄已還原：${firestoreErrorMessage(err)}`, 'error')
     })
   }
 

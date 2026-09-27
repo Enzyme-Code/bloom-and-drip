@@ -1,0 +1,129 @@
+import { collection, deleteDoc, doc, onSnapshot, setDoc, type Unsubscribe } from 'firebase/firestore'
+import { DEFAULT_GEAR } from '~/data/gear'
+import type { BrewParams, GearSet } from '~/types/brew'
+
+const SELECTED_KEY = 'bloom-and-drip:gear'
+const WRITE_DELAY = 600
+
+let scope: ReturnType<typeof effectScope> | null = null
+let unsubscribe: Unsubscribe | null = null
+const pendingWrites = new Map<string, ReturnType<typeof setTimeout>>()
+
+const cloneDefaults = () => DEFAULT_GEAR.map(g => ({ ...g }))
+
+function readSelected() {
+  try {
+    return localStorage.getItem(SELECTED_KEY)
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Equipment setups (水溫 / 研磨 / 濾杯 / 水質). Signed-in users sync to users/{uid}/gear/{id};
+ * guests get editable defaults kept in memory. The selected set is remembered per device.
+ */
+export function useGear() {
+  const { $db } = useNuxtApp()
+  const { user } = useAuth()
+  const toast = useToast()
+  const gearSets = useState<GearSet[]>('gear-sets', cloneDefaults)
+  const selectedId = useState<string>('gear-selected', () => readSelected() ?? DEFAULT_GEAR[0]!.id)
+
+  const gearCol = (uid: string) => collection($db, 'users', uid, 'gear')
+
+  if (!scope) {
+    scope = effectScope(true)
+    scope.run(() => {
+      watch(
+        () => user.value?.uid,
+        (uid) => {
+          unsubscribe?.()
+          unsubscribe = null
+          if (!uid) {
+            gearSets.value = cloneDefaults()
+            return
+          }
+          unsubscribe = onSnapshot(gearCol(uid), (snap) => {
+            // First sign-in: seed with whatever gear is in memory (defaults, or edits made as a guest).
+            // Ids are kept, so seeding twice is harmless.
+            if (snap.empty && !snap.metadata.fromCache) {
+              for (const g of gearSets.value) {
+                const { id, ...data } = g
+                setDoc(doc(gearCol(uid), id), data).catch(err => console.error('[gear] seed failed', err))
+              }
+              return
+            }
+            if (snap.empty) return
+            const local = new Map(gearSets.value.map(g => [g.id, g]))
+            gearSets.value = snap.docs
+              // Keep the local copy while an edit is still waiting to be written
+              .map(d => (pendingWrites.has(d.id) && local.get(d.id)) || { ...(d.data() as Omit<GearSet, 'id'>), id: d.id })
+              .sort((a, b) => a.name.localeCompare(b.name, 'zh-Hant'))
+          }, err => console.error('[gear]', err))
+        },
+        { immediate: true }
+      )
+      watch(selectedId, (id) => {
+        try {
+          localStorage.setItem(SELECTED_KEY, id)
+        } catch {
+          // Storage unavailable (private mode); selection just won't persist
+        }
+      })
+    })
+  }
+
+  const selected = computed(() => gearSets.value.find(g => g.id === selectedId.value) ?? gearSets.value[0]!)
+
+  /** The selected set's brew parameters */
+  const params = computed<BrewParams>(() => {
+    const { id: _id, name: _name, ...rest } = selected.value
+    return rest
+  })
+
+  function persist(gear: GearSet) {
+    const uid = user.value?.uid
+    if (!uid) return
+    clearTimeout(pendingWrites.get(gear.id))
+    // Debounced so typing in a field doesn't write on every keystroke
+    pendingWrites.set(gear.id, setTimeout(() => {
+      pendingWrites.delete(gear.id)
+      const { id, ...data } = gear
+      setDoc(doc(gearCol(uid), id), data).catch((err) => {
+        console.error('[gear] write failed', err)
+        toast.show(`器具儲存失敗：${firestoreErrorMessage(err)}`, 'error')
+      })
+    }, WRITE_DELAY))
+  }
+
+  function update(id: string, patch: Partial<Omit<GearSet, 'id'>>) {
+    const i = gearSets.value.findIndex(g => g.id === id)
+    if (i < 0) return
+    const next = { ...gearSets.value[i]!, ...patch }
+    gearSets.value = gearSets.value.map(g => (g.id === id ? next : g))
+    persist(next)
+  }
+
+  function add(from: GearSet = selected.value) {
+    const gear: GearSet = { ...from, id: `g${Date.now().toString(36)}`, name: `${from.name} 副本` }
+    gearSets.value = [...gearSets.value, gear]
+    persist(gear)
+    return gear
+  }
+
+  function remove(id: string) {
+    if (gearSets.value.length <= 1) return
+    gearSets.value = gearSets.value.filter(g => g.id !== id)
+    if (selectedId.value === id) selectedId.value = gearSets.value[0]!.id
+    clearTimeout(pendingWrites.get(id))
+    const uid = user.value?.uid
+    if (uid) deleteDoc(doc(gearCol(uid), id)).catch(err => console.error('[gear] delete failed', err))
+  }
+
+  function select(id: string) {
+    if (gearSets.value.some(g => g.id === id)) selectedId.value = id
+  }
+
+  return { gearSets, selectedId, selected, params, update, add, remove, select }
+}

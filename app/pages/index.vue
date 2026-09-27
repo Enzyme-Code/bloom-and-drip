@@ -10,6 +10,7 @@ useHead({ title: '新增沖煮紀錄 — Bloom & Drip' })
     <div class="w-full px-margin-mobile md:px-margin pb-space-xl grid grid-cols-1 lg:grid-cols-12 gap-space-md md:gap-gutter">
       <div class="lg:col-span-7 min-w-0 flex flex-col gap-space-md md:gap-space-lg">
         <BrewRatioCalculator />
+        <BrewMethodCard />
         <div class="hidden md:block"><BrewConsole /></div>
         <div class="md:hidden"><BrewConsoleCompact /></div>
       </div>

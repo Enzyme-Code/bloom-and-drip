@@ -2,11 +2,17 @@
 const { loadRecommended } = useBrewSession()
 const { nextRecipeNo } = useBrewLogs()
 const { save } = useBrewSave()
+const { user } = useAuth()
 const toast = useToast()
 
+const LOAD_MESSAGES = {
+  preset: '已載入你為這支豆子儲存的配方',
+  template: '已載入範本推薦參數',
+  default: '已載入預設參數'
+}
+
 async function onLoad() {
-  const source = await loadRecommended()
-  toast.show(source === 'preset' ? '已載入你的預設沖煮配方' : '已載入烘豆商推薦參數', 'tune')
+  toast.show(LOAD_MESSAGES[await loadRecommended()], 'tune')
 }
 </script>
 
@@ -43,7 +49,7 @@ async function onLoad() {
           @click="save"
         >
           <span class="icon text-[16px]">save</span>
-          儲存並歸檔紀錄
+          {{ user ? '儲存並歸檔紀錄' : '登入並儲存' }}
         </button>
       </div>
     </div>

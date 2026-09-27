@@ -77,7 +77,11 @@ function onDelete(id: string) {
                 </span>
               </p>
               <h2 class="font-serif text-headline-sm text-primary truncate">{{ log.bean.name }}</h2>
-              <p class="text-body-sm text-on-surface-variant">{{ log.bean.nameEn }} · {{ log.bean.process }}</p>
+              <p class="text-body-sm text-on-surface-variant">{{ [log.bean.nameEn, log.bean.process].filter(Boolean).join(' · ') }}</p>
+              <p v-if="log.method || log.gearName" class="flex flex-wrap gap-1.5 mt-1 text-[11px]">
+                <span v-if="log.method" class="px-2 py-0.5 rounded bg-secondary-fixed/60 text-on-secondary-fixed font-semibold">{{ log.method.name || '自訂手法' }}</span>
+                <span v-if="log.gearName" class="px-2 py-0.5 rounded bg-surface-container-high text-on-surface-variant">{{ log.gearName }}</span>
+              </p>
             </div>
             <img v-if="log.photo" :src="log.photo" alt="萃取影像" class="w-16 h-16 rounded-lg object-cover shrink-0">
           </div>

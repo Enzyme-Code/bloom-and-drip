@@ -59,31 +59,35 @@ export function useAuth() {
     return readyPromise
   }
 
-  /** Creates / refreshes users/{uid} with basic profile info. */
-  async function upsertProfile(u: User, extra: Record<string, unknown> = {}) {
-    await setDoc(
+  /**
+   * Creates / refreshes users/{uid} with basic profile info.
+   * Fire-and-forget: sign-in must not wait for a Firestore server ack, which on a fresh page means opening
+   * the Firestore channel first, and can stall indefinitely on networks that block streaming connections.
+   */
+  function upsertProfile(u: User, extra: Record<string, unknown> = {}) {
+    setDoc(
       doc($db, 'users', u.uid),
       { email: u.email, displayName: u.displayName, photoURL: u.photoURL, lastLoginAt: serverTimestamp(), ...extra },
       { merge: true }
-    )
+    ).catch(err => console.error('[auth] profile write failed', err))
   }
 
   async function register(displayName: string, email: string, password: string) {
     const cred = await createUserWithEmailAndPassword($firebaseAuth, email, password)
     await updateProfile(cred.user, { displayName })
-    await upsertProfile(cred.user, { createdAt: serverTimestamp() })
+    upsertProfile(cred.user, { createdAt: serverTimestamp() })
     user.value = toAuthUser(cred.user)
   }
 
   async function login(email: string, password: string) {
     const cred = await signInWithEmailAndPassword($firebaseAuth, email, password)
-    await upsertProfile(cred.user)
+    upsertProfile(cred.user)
     user.value = toAuthUser(cred.user)
   }
 
   async function loginWithGoogle() {
     const cred = await signInWithPopup($firebaseAuth, new GoogleAuthProvider())
-    await upsertProfile(cred.user)
+    upsertProfile(cred.user)
     user.value = toAuthUser(cred.user)
   }
 

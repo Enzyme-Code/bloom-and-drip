@@ -5,6 +5,7 @@ const { save, discard, share } = useBrewSave()
 const { user } = useAuth()
 const online = useOnline()
 const toast = useToast()
+const requireLogin = useLoginPrompt()
 
 function onCancel() {
   if (status.value !== 'idle' && !window.confirm('確定要捨棄本次沖煮紀錄嗎？')) return
@@ -13,11 +14,16 @@ function onCancel() {
 }
 
 function onPreset() {
+  if (!requireLogin('登入後即可儲存預設配方')) return
   try {
-    savePreset().catch(() => toast.show('配方雲端同步失敗，請稍後再試', 'error'))
+    savePreset().catch((err) => {
+      console.error('[presets] write failed', err)
+      toast.show(`配方同步失敗：${firestoreErrorMessage(err)}`, 'error')
+    })
     toast.show('已存為此咖啡豆的預設沖煮配方', 'bookmark')
-  } catch {
-    toast.show('儲存配方失敗，請重新登入後再試', 'error')
+  } catch (err) {
+    console.error('[presets] write failed', err)
+    toast.show(`儲存配方失敗：${firestoreErrorMessage(err)}`, 'error')
   }
 }
 </script>
@@ -27,11 +33,17 @@ function onPreset() {
   <aside class="hidden md:block sticky bottom-0 w-full z-40 bg-surface/95 backdrop-blur-md shadow-[0_-4px_20px_rgba(0,0,0,0.06)] px-margin py-3">
     <div class="flex items-center justify-between gap-3">
       <div class="flex items-center gap-2 min-w-0">
-        <span class="w-2 h-2 rounded-full shrink-0" :class="online ? 'bg-emerald-600' : 'bg-outline'" />
-        <span class="font-mono text-label-mono text-on-surface truncate">
-          {{ online ? '雲端同步中・紀錄儲存至你的帳號' : '離線中・恢復連線後自動同步' }}
-        </span>
-        <span class="hidden lg:inline font-mono text-[11px] text-outline truncate">| {{ user?.email }}</span>
+        <template v-if="user">
+          <span class="w-2 h-2 rounded-full shrink-0" :class="online ? 'bg-emerald-600' : 'bg-outline'" />
+          <span class="font-mono text-label-mono text-on-surface truncate">
+            {{ online ? '雲端同步中・紀錄儲存至你的帳號' : '離線中・恢復連線後自動同步' }}
+          </span>
+          <span class="hidden lg:inline font-mono text-[11px] text-outline truncate">| {{ user.email }}</span>
+        </template>
+        <template v-else>
+          <span class="w-2 h-2 rounded-full shrink-0 bg-secondary-fixed-dim" />
+          <span class="font-mono text-label-mono text-on-surface truncate">訪客模式・工具可自由使用，登入後即可儲存紀錄</span>
+        </template>
       </div>
       <div class="flex items-center gap-space-sm shrink-0">
         <button
@@ -54,7 +66,7 @@ function onPreset() {
           @click="save"
         >
           <span class="icon text-[16px]">done_all</span>
-          儲存本次沖煮紀錄 (Save Log Entry)
+          {{ user ? '儲存本次沖煮紀錄 (Save Log Entry)' : '登入並儲存紀錄' }}
         </button>
       </div>
     </div>
@@ -75,8 +87,8 @@ function onPreset() {
       class="flex-1 h-12 rounded-lg bg-primary text-on-primary text-body-md font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
       @click="save"
     >
-      <span class="icon text-[20px]">note_add</span>
-      儲存本次沖煮紀錄
+      <span class="icon text-[20px]">{{ user ? 'note_add' : 'login' }}</span>
+      {{ user ? '儲存本次沖煮紀錄' : '登入並儲存紀錄' }}
     </button>
   </aside>
 </template>

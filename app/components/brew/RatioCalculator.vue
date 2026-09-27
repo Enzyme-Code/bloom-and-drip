@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { dose, water, ratio, params, setDose, setWater, setRatio } = useBrewSession()
+const { dose, water, ratio, setDose, setWater, setRatio } = useBrewSession()
 
 const DOSE_PRESETS = [15, 16, 18, 20]
 const RATIO_PRESETS = [14, 15, 16, 16.5]
@@ -21,16 +21,18 @@ const presetClass = (active: boolean) =>
         <span class="text-label-md uppercase tracking-wider text-primary">粉水比動態計算機</span>
         <span class="hidden md:inline font-mono text-label-mono text-outline">RATIO CALIBRATION</span>
       </div>
-      <span
-        v-if="inGoldenCup"
-        class="hidden md:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-mono text-label-mono font-medium"
-      >
-        <span class="icon text-[13px]">verified</span>
-        SCA 黃金金杯比例
-      </span>
-      <span class="md:hidden px-2.5 py-1 rounded-lg bg-secondary-fixed/60 font-mono text-body-sm text-secondary font-medium">
-        粉水比 {{ formatRatio(ratio) }}
-      </span>
+      <div class="flex items-center gap-2">
+        <span
+          v-if="inGoldenCup"
+          class="hidden md:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-mono text-label-mono font-medium"
+        >
+          <span class="icon text-[13px]">verified</span>
+          SCA 黃金金杯比例
+        </span>
+        <span class="md:hidden px-2.5 py-1 rounded-lg bg-secondary-fixed/60 font-mono text-body-sm text-secondary font-medium">
+          粉水比 {{ formatRatio(ratio) }}
+        </span>
+      </div>
     </div>
 
     <!-- Desktop steppers -->
@@ -102,37 +104,7 @@ const presetClass = (active: boolean) =>
       </div>
     </div>
 
-    <!-- Parameter cards -->
-    <div class="grid grid-cols-3 sm:grid-cols-4 gap-2 md:gap-space-sm md:pt-2">
-      <BrewParamCard
-        v-model:value="params.temperature"
-        icon="device_thermostat"
-        label="注水水溫"
-        suffix="°C"
-        hint="PID 智能溫控壺"
-        numeric
-      />
-      <BrewParamCard
-        v-model:value="params.grind"
-        v-model:note="params.grindNote"
-        icon="grain"
-        label="研磨刻度"
-      />
-      <BrewParamCard
-        v-model:value="params.dripper"
-        v-model:note="params.filter"
-        icon="filter_vintage"
-        label="萃取濾杯"
-      />
-      <BrewParamCard
-        v-model:value="params.waterPpm"
-        v-model:note="params.waterNote"
-        icon="water_drop"
-        label="沖煮水質"
-        suffix="ppm"
-        numeric
-        class="hidden sm:flex"
-      />
-    </div>
+    <!-- Equipment (managed on the gear page) -->
+    <BrewGearSelector />
   </div>
 </template>

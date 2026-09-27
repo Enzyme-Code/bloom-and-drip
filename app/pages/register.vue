@@ -6,6 +6,8 @@ const { register, loginWithGoogle } = useAuth()
 const route = useRoute()
 const toast = useToast()
 
+useRedirectWhenSignedIn()
+
 const form = reactive({ name: '', email: '', password: '', confirm: '' })
 const fieldErrors = reactive<Record<string, string>>({})
 const error = ref('')

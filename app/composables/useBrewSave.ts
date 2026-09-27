@@ -9,6 +9,7 @@ export function useBrewSave() {
   const timer = useBrewTimer()
   const { add } = useBrewLogs()
   const toast = useToast()
+  const requireLogin = useLoginPrompt()
 
   function buildLog(): BrewLog {
     const b = session.bean.value
@@ -16,10 +17,21 @@ export function useBrewSave() {
     return {
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
-      bean: { id: b.id, name: b.name, nameEn: b.nameEn, process: b.process, roaster: b.roaster, roast: b.roast },
+      bean: {
+        name: b.name.trim() || '未命名咖啡豆',
+        nameEn: b.nameEn.trim(),
+        process: b.process.trim(),
+        roaster: b.roaster.trim(),
+        roast: b.roast.trim(),
+        bloomSeconds: Number(b.bloomSeconds) || 0,
+        altitude: b.altitude ? Number(b.altitude) : null
+      },
       dose: session.dose.value,
       water: session.water.value,
       params: { ...session.params.value },
+      gearId: session.gear.value.id,
+      gearName: session.gear.value.name,
+      method: JSON.parse(JSON.stringify(session.method.value)),
       totalSeconds: Math.round(timer.elapsed.value),
       stageSplits: [...timer.splits.value],
       overall: session.overall.value,
@@ -36,6 +48,8 @@ export function useBrewSave() {
       toast.show('尚未開始沖煮或填寫評分', 'info')
       return false
     }
+    // Checked after the empty-brew guard so guests aren't bounced to login for nothing
+    if (!requireLogin('登入後即可儲存這次的沖煮紀錄')) return false
     if (timer.status.value === 'running') timer.pause()
 
     const log = buildLog()
@@ -44,7 +58,7 @@ export function useBrewSave() {
       add(log)
     } catch (err) {
       console.error('[save]', err)
-      toast.show('儲存失敗，請重新登入後再試', 'error')
+      toast.show(`儲存失敗：${firestoreErrorMessage(err)}`, 'error')
       return false
     }
     discard()

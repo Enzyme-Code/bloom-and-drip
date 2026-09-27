@@ -6,6 +6,8 @@ const { login, loginWithGoogle, resetPassword } = useAuth()
 const route = useRoute()
 const toast = useToast()
 
+useRedirectWhenSignedIn()
+
 const email = ref('')
 const password = ref('')
 const error = ref('')

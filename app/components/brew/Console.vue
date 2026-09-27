@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const { stages, targetFinish, water, dose, ratio } = useBrewSession()
 const timer = useBrewTimer()
-const { status, elapsed, stageElapsed, stageIndex, splits } = timer
+const { status, elapsed, stageElapsed, stageIndex, splits, manual } = timer
 
 const currentStage = computed(() => stages.value[stageIndex.value]!)
 
@@ -18,13 +18,17 @@ const overTime = computed(() => elapsed.value > targetFinish.value)
 
 function stageValue(i: number) {
   const stage = stages.value[i]!
-  const split = splits.value.find(s => s.key === stage.key)
-  const state = timer.stageStatus(i)
-  if (state === 'done' && split) return stage.targetMass == null ? `完成 ${formatTime(split.t)}` : `${formatTime(split.t)} / ${stage.targetMass}g`
-  if (stage.targetMass == null) return state === 'active' ? '滴濾中…' : `預估 ${formatTime(targetFinish.value)}`
-  if (state === 'active') return `進行中 / 至 ${stage.targetMass}g`
-  return `目標 ${stage.targetMass}g`
+  return stageText(stage, splits.value.find(s => s.key === stage.key), timer.stageStatus(i), targetFinish.value)
 }
+
+/** Water target to show while on a wait / drawdown step: the latest water step reached so far */
+const currentTarget = computed(() => {
+  for (let i = stageIndex.value; i >= 0; i--) {
+    const m = stages.value[i]?.targetMass
+    if (m != null) return m
+  }
+  return stages.value.find(s => s.targetMass != null)?.targetMass ?? water.value
+})
 
 const toggleLabel = computed(() => ({
   idle: { icon: 'play_arrow', text: '開始計時 (Start)' },
@@ -32,6 +36,21 @@ const toggleLabel = computed(() => ({
   paused: { icon: 'play_arrow', text: '繼續計時 (Resume)' },
   finished: { icon: 'check', text: '萃取完成 (Done)' }
 })[status.value])
+
+const timedSplits = computed(() => splits.value.filter((s): s is typeof s & { t: number } => s.t != null))
+
+/** Remounts the manual form so "清除" also clears its text fields */
+const manualFormKey = ref(0)
+
+function toggleManual() {
+  if (!manual.value && status.value === 'running') timer.pause()
+  manual.value = !manual.value
+}
+
+function clearAll() {
+  timer.reset()
+  manualFormKey.value++
+}
 
 const isLastStage = computed(() => stageIndex.value === stages.value.length - 1 && status.value !== 'idle')
 </script>
@@ -49,9 +68,20 @@ const isLastStage = computed(() => stageIndex.value === stages.value.length - 1 
         </span>
         <span class="font-mono text-label-mono tracking-widest text-on-primary-container uppercase">Brew Timer // Pour Stages</span>
       </div>
-      <span class="font-mono text-[11px] px-2 py-0.5 rounded bg-surface-container-lowest/10 text-secondary-fixed">
-        {{ dose }}g · {{ formatRatio(ratio) }}
-      </span>
+      <div class="flex items-center gap-2">
+        <span class="font-mono text-[11px] px-2 py-0.5 rounded bg-surface-container-lowest/10 text-secondary-fixed">
+          {{ dose }}g · {{ formatRatio(ratio) }}
+        </span>
+        <button
+          type="button"
+          class="inline-flex items-center gap-1 px-2.5 py-1 rounded text-[12px] font-semibold transition-colors"
+          :class="manual ? 'bg-secondary-fixed text-on-secondary-fixed' : 'bg-surface-container-lowest/15 text-on-primary hover:bg-surface-container-lowest/25'"
+          @click="toggleManual"
+        >
+          <span class="icon text-[15px]">{{ manual ? 'timer' : 'edit' }}</span>
+          {{ manual ? '改用計時' : '手動輸入' }}
+        </button>
+      </div>
     </div>
 
     <!-- Readouts -->
@@ -66,7 +96,7 @@ const isLastStage = computed(() => stageIndex.value === stages.value.length - 1 
         <span class="font-mono text-[11px] text-on-primary-container uppercase tracking-wider mb-1">Stage Target / Total</span>
         <div class="flex items-baseline gap-2">
           <span class="font-mono text-display-timer text-secondary-fixed font-medium tabular-nums">
-            {{ currentStage.targetMass ?? water }}
+            {{ currentTarget }}
           </span>
           <span class="font-mono text-base text-on-primary-container whitespace-nowrap">/ {{ water }}g</span>
         </div>
@@ -82,10 +112,15 @@ const isLastStage = computed(() => stageIndex.value === stages.value.length - 1 
       </div>
     </div>
 
+    <!-- Manual entry -->
+    <div v-if="manual" class="bg-surface-container-lowest/5 rounded-lg p-space-sm relative z-10">
+      <BrewManualEntry :key="manualFormKey" tone="dark" />
+    </div>
+
     <!-- Stages -->
-    <div class="bg-surface-container-lowest/5 rounded-lg p-space-sm relative z-10 flex flex-col gap-2">
+    <div v-if="!manual" class="bg-surface-container-lowest/5 rounded-lg p-space-sm relative z-10 flex flex-col gap-2">
       <div class="flex items-center justify-between font-mono text-[11px] text-on-primary-container px-1">
-        <span>分段注水萃取進程</span>
+        <span>沖煮步驟進程</span>
         <span class="text-secondary-fixed font-medium">{{ stageHeading }}</span>
       </div>
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-2">
@@ -104,7 +139,7 @@ const isLastStage = computed(() => stageIndex.value === stages.value.length - 1 
               class="font-mono text-[11px]"
               :class="timer.stageStatus(i) === 'pending' ? 'text-on-primary-container' : 'text-secondary-fixed font-medium'"
             >
-              {{ stage.targetMass == null ? stage.shortLabel : `第 ${i + 1} 段・${stage.shortLabel}` }}
+              {{ i + 1 }}・{{ stage.shortLabel }}
             </span>
             <span
               class="icon text-[14px]"
@@ -113,7 +148,7 @@ const isLastStage = computed(() => stageIndex.value === stages.value.length - 1 
                 timer.stageStatus(i) === 'active' && status === 'running' ? 'animate-pulse' : ''
               ]"
             >
-              {{ timer.stageStatus(i) === 'done' ? 'check_circle' : timer.stageStatus(i) === 'active' ? 'electric_bolt' : stage.targetMass == null ? 'timer' : 'radio_button_unchecked' }}
+              {{ stageIcon(stage, timer.stageStatus(i)) }}
             </span>
           </div>
           <span class="font-mono text-sm" :class="timer.stageStatus(i) === 'active' ? 'text-secondary-fixed' : 'text-on-primary'">
@@ -127,7 +162,7 @@ const isLastStage = computed(() => stageIndex.value === stages.value.length - 1 
     </div>
 
     <!-- Timeline -->
-    <div class="bg-surface-container-lowest/5 rounded-lg p-space-sm relative z-10 flex flex-col gap-2">
+    <div v-if="!manual" class="bg-surface-container-lowest/5 rounded-lg p-space-sm relative z-10 flex flex-col gap-2">
       <div class="flex items-center justify-between font-mono text-[10px] text-on-primary-container">
         <span>萃取時間軸 (BREW TIMELINE)</span>
         <span :class="overTime ? 'text-secondary-fixed-dim' : 'text-secondary-fixed'">
@@ -140,7 +175,7 @@ const isLastStage = computed(() => stageIndex.value === stages.value.length - 1 
         <div class="absolute -top-1.5 -bottom-1.5 w-px bg-secondary-fixed-dim" :style="{ left: pos(targetFinish) }" />
         <!-- Stage split markers -->
         <div
-          v-for="(split, i) in splits"
+          v-for="(split, i) in timedSplits"
           :key="split.key"
           class="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center"
           :style="{ left: pos(split.t) }"
@@ -152,7 +187,25 @@ const isLastStage = computed(() => stageIndex.value === stages.value.length - 1 
     </div>
 
     <!-- Controls -->
-    <div class="grid grid-cols-3 gap-2 relative z-10 pt-1">
+    <div v-if="manual" class="grid grid-cols-2 gap-2 relative z-10 pt-1">
+      <button
+        type="button"
+        class="py-2.5 px-3 rounded-lg bg-secondary hover:bg-secondary/90 text-on-secondary text-label-md flex items-center justify-center gap-1.5 transition-colors shadow"
+        @click="manual = false"
+      >
+        <span class="icon text-[18px]">check</span>
+        完成輸入
+      </button>
+      <button
+        type="button"
+        class="py-2.5 px-3 rounded-lg bg-surface-container-lowest/15 hover:bg-surface-container-lowest/25 text-label-md flex items-center justify-center gap-1.5 transition-colors"
+        @click="clearAll"
+      >
+        <span class="icon text-[18px]">backspace</span>
+        清除數值
+      </button>
+    </div>
+    <div v-else class="grid grid-cols-3 gap-2 relative z-10 pt-1">
       <button
         type="button"
         class="py-2.5 px-3 rounded-lg bg-surface-container-lowest/15 hover:bg-surface-container-lowest/25 text-label-md flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50"
@@ -169,7 +222,7 @@ const isLastStage = computed(() => stageIndex.value === stages.value.length - 1 
         @click="timer.nextStage"
       >
         <span class="icon text-[18px]">{{ isLastStage ? 'flag' : 'skip_next' }}</span>
-        {{ isLastStage ? '完成萃取 (Finish)' : '分段注水 (Stage)' }}
+        {{ isLastStage ? '完成萃取 (Finish)' : status === 'idle' ? '開始並記錄 (Start)' : '下一步 (Next Step)' }}
       </button>
       <button
         type="button"

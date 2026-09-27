@@ -7,7 +7,16 @@ const TICK_MS = 100
 let handle: ReturnType<typeof setInterval> | null = null
 let lastTick = 0
 
-/** Brew stopwatch with manual stage splits: the barista taps "分段注水" as each pour reaches its target. */
+/** Values typed in from the barista's own scale, one entry per stage */
+export interface ManualStageEntry {
+  t: number | null
+  m: number | null
+}
+
+/**
+ * Brew stopwatch with stage splits: either tap "分段注水" live as each pour reaches its target,
+ * or switch to manual mode and type in the times / weights read off your own scale.
+ */
 export function useBrewTimer() {
   const { stages } = useBrewSession()
 
@@ -15,9 +24,39 @@ export function useBrewTimer() {
   const elapsed = useState('timer-elapsed', () => 0)
   const stageIndex = useState('stage-index', () => 0)
   const splits = useState<StageSplit[]>('stage-splits', () => [])
+  /** Manual-entry mode, shared by the desktop and mobile consoles */
+  const manual = useState('timer-manual', () => false)
 
   /** Seconds since the current stage began */
   const stageElapsed = computed(() => elapsed.value - (splits.value[splits.value.length - 1]?.t ?? 0))
+
+  /** Current values in manual-entry shape, for pre-filling the form */
+  function manualEntries(): ManualStageEntry[] {
+    return stages.value.map((stage) => {
+      const split = splits.value.find(s => s.key === stage.key)
+      return { t: split?.t ?? null, m: split?.m ?? null }
+    })
+  }
+
+  /**
+   * Replaces splits / total time with manually entered values. Stops the stopwatch.
+   * Total time falls back to the latest stage time when not given.
+   */
+  function applyManual(entries: ManualStageEntry[], total: number | null) {
+    halt()
+    splits.value = stages.value.flatMap((stage, i) => {
+      const e = entries[i]
+      if (!e || (e.t == null && e.m == null)) return []
+      return [{ key: stage.key, label: stage.label, t: e.t, m: stage.targetMass == null ? null : e.m ?? stage.targetMass }]
+    })
+    const times = splits.value.map(s => s.t).filter((t): t is number => t != null)
+    elapsed.value = total ?? (times.length ? Math.max(...times) : 0)
+
+    const done = stages.value.every(stage => splits.value.some(s => s.key === stage.key))
+    stageIndex.value = Math.min(splits.value.length, stages.value.length - 1)
+    if (done || total != null) status.value = 'finished'
+    else status.value = splits.value.length ? 'paused' : 'idle'
+  }
 
   function tick() {
     const now = performance.now()
@@ -79,5 +118,19 @@ export function useBrewTimer() {
     return 'pending'
   }
 
-  return { status, elapsed, stageElapsed, stageIndex, splits, pause, toggle, nextStage, reset, stageStatus }
+  return {
+    status,
+    elapsed,
+    stageElapsed,
+    stageIndex,
+    splits,
+    manual,
+    pause,
+    toggle,
+    nextStage,
+    reset,
+    stageStatus,
+    manualEntries,
+    applyManual
+  }
 }

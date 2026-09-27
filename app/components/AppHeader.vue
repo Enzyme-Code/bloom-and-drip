@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const route = useRoute()
+const { user } = useAuth()
 const router = useRouter()
 
 const NAV = [
@@ -47,7 +48,14 @@ function goBack() {
       </nav>
 
       <div class="flex items-center gap-space-md">
-        <UserMenu />
+<NuxtLink
+          v-if="!user"
+          :to="{ path: '/login', query: route.path !== '/' ? { redirect: route.fullPath } : undefined }"
+          class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary text-on-primary text-label-md hover:bg-primary-container transition-colors"
+        >
+          <span class="icon text-[16px]">login</span>登入
+        </NuxtLink>
+        <UserMenu v-else />
       </div>
     </div>
 
@@ -75,7 +83,14 @@ function goBack() {
         <AppLogo />
         <span class="font-serif text-headline-sm text-primary tracking-tight">{{ mobileTitle }}</span>
       </div>
-      <UserMenu />
+<NuxtLink
+        v-if="!user"
+        :to="{ path: '/login', query: route.path !== '/' ? { redirect: route.fullPath } : undefined }"
+        class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary text-on-primary text-label-md hover:bg-primary-container transition-colors"
+      >
+        <span class="icon text-[16px]">login</span>登入
+      </NuxtLink>
+      <UserMenu v-else />
     </div>
 
     <nav v-if="menuOpen" class="xl:hidden px-margin-mobile pb-3 flex flex-col gap-1">

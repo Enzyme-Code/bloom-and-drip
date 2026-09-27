@@ -1,6 +1,7 @@
-import type { Bean } from '~/types/brew'
+import type { BeanInfo, BeanTemplate } from '~/types/brew'
 
-export const BEANS: Bean[] = [
+/** Starting points in the bean picker; everything is editable afterwards */
+export const BEAN_TEMPLATES: BeanTemplate[] = [
   {
     id: 'yirgacheffe-gedeb',
     name: '衣索比亞 耶加雪菲 潔蒂普',
@@ -10,17 +11,7 @@ export const BEANS: Bean[] = [
     roast: '淺焙 Light Roast',
     bloomSeconds: 35,
     altitude: 2150,
-    recommended: {
-      dose: 16,
-      ratio: 15,
-      temperature: 92,
-      grind: 'C40 24 格',
-      grindNote: '中細研磨 (Medium-Fine)',
-      dripper: 'Hario V60 01',
-      filter: '三洋麻纖維濾紙',
-      waterPpm: 75,
-      waterNote: 'Third Wave Water'
-    }
+    recommended: { dose: 16, ratio: 15 }
   },
   {
     id: 'kenya-nyeri',
@@ -31,17 +22,7 @@ export const BEANS: Bean[] = [
     roast: '淺中焙 Light-Medium',
     bloomSeconds: 30,
     altitude: 1800,
-    recommended: {
-      dose: 15,
-      ratio: 16,
-      temperature: 93,
-      grind: 'C40 22 格',
-      grindNote: '中細研磨 (Medium-Fine)',
-      dripper: 'Kalita Wave 155',
-      filter: '波浪濾紙',
-      waterPpm: 90,
-      waterNote: 'Third Wave Water'
-    }
+    recommended: { dose: 15, ratio: 16 }
   },
   {
     id: 'colombia-huila',
@@ -52,19 +33,22 @@ export const BEANS: Bean[] = [
     roast: '中焙 Medium Roast',
     bloomSeconds: 40,
     altitude: 1750,
-    recommended: {
-      dose: 18,
-      ratio: 14,
-      temperature: 90,
-      grind: 'C40 26 格',
-      grindNote: '中研磨 (Medium)',
-      dripper: 'Origami M',
-      filter: '錐形濾紙',
-      waterPpm: 110,
-      waterNote: '過濾自來水'
-    }
+    recommended: { dose: 18, ratio: 14 }
   }
 ]
+
+export const BLANK_BEAN: BeanInfo = {
+  name: '',
+  nameEn: '',
+  process: '',
+  roaster: '',
+  roast: '',
+  bloomSeconds: 35,
+  altitude: null
+}
+
+export const PROCESS_SUGGESTIONS = ['日曬', '水洗', '蜜處理', '厭氧發酵', '半水洗', '濕剝法']
+export const ROAST_SUGGESTIONS = ['極淺焙', '淺焙', '淺中焙', '中焙', '中深焙', '深焙']
 
 export const FLAVOR_LIBRARY = [
   '柑橘 Citrus',
