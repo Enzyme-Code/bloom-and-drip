@@ -2,6 +2,7 @@ import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
   onAuthStateChanged,
+  sendEmailVerification,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signInWithPopup,
@@ -17,12 +18,14 @@ export interface AuthUser {
   email: string | null
   displayName: string | null
   photoURL: string | null
+  /** Google accounts are verified already; email/password accounts after clicking the link in the mail */
+  emailVerified: boolean
 }
 
 let readyPromise: Promise<void> | null = null
 
 function toAuthUser(u: User | null): AuthUser | null {
-  return u ? { uid: u.uid, email: u.email, displayName: u.displayName, photoURL: u.photoURL } : null
+  return u ? { uid: u.uid, email: u.email, displayName: u.displayName, photoURL: u.photoURL, emailVerified: u.emailVerified } : null
 }
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -34,6 +37,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   'auth/user-not-found': 'Email 或密碼錯誤',
   'auth/wrong-password': 'Email 或密碼錯誤',
   'auth/too-many-requests': '嘗試次數過多，請稍後再試',
+  'auth/user-token-expired': '登入已過期，請重新登入',
   'auth/popup-closed-by-user': '已取消登入',
   'auth/network-request-failed': '網路連線失敗',
   'auth/operation-not-allowed': '此登入方式尚未在 Firebase 啟用'
@@ -77,6 +81,24 @@ export function useAuth() {
     await updateProfile(cred.user, { displayName })
     upsertProfile(cred.user, { createdAt: serverTimestamp() })
     user.value = toAuthUser(cred.user)
+    // Doesn't block sign-up: if it fails, the banner offers to resend
+    sendEmailVerification(cred.user).catch(err => console.error('[auth] verification mail failed', err))
+  }
+
+  /** Sends the verification mail again (Firebase rate-limits this: auth/too-many-requests) */
+  function resendVerification() {
+    const u = $firebaseAuth.currentUser
+    if (!u) return Promise.reject(new Error('尚未登入'))
+    return sendEmailVerification(u)
+  }
+
+  /** Re-fetches the account so a verification done in another tab / on the phone shows up; returns the new state */
+  async function refreshVerification() {
+    const u = $firebaseAuth.currentUser
+    if (!u) return false
+    await u.reload()
+    user.value = toAuthUser(u)
+    return u.emailVerified
   }
 
   async function login(email: string, password: string) {
@@ -100,5 +122,5 @@ export function useAuth() {
     user.value = null
   }
 
-  return { user, ready, register, login, loginWithGoogle, resetPassword, logout }
+  return { user, ready, register, login, loginWithGoogle, resetPassword, resendVerification, refreshVerification, logout }
 }
