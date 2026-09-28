@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { loadRecommended } = useBrewSession()
+const { loadRecommended, logMode } = useBrewSession()
 const { nextRecipeNo } = useBrewLogs()
 const { save } = useBrewSave()
 const { user } = useAuth()
@@ -36,6 +36,7 @@ async function onLoad() {
 
       <div class="flex flex-wrap items-center gap-space-sm">
         <button
+          v-if="logMode === 'full'"
           type="button"
           class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface-container text-on-surface-variant text-label-md hover:bg-surface-container-high transition-all"
           @click="onLoad"

@@ -1,9 +1,18 @@
 import { doc, getDoc, setDoc } from 'firebase/firestore'
 import { BEAN_TEMPLATES } from '~/data/beans'
 import { DEFAULT_METHOD_ID, STEP_META, methodTemplates, newStepId } from '~/data/methods'
-import type { BeanInfo, BeanTemplate, BrewMethod, BrewStage, Recipe, SensoryScores } from '~/types/brew'
+import type { BeanInfo, BeanTemplate, BrewMethod, BrewStage, LogMode, Recipe, SensoryScores } from '~/types/brew'
 
 const DEFAULT_TEMPLATE = BEAN_TEMPLATES[0]!
+const LOG_MODE_KEY = 'bloom-and-drip:log-mode'
+
+function readLogMode(): LogMode {
+  try {
+    return localStorage.getItem(LOG_MODE_KEY) === 'taste' ? 'taste' : 'full'
+  } catch {
+    return 'full'
+  }
+}
 
 function defaultScores(): SensoryScores {
   return { acidity: 3, sweetness: 3, body: 3, aftertaste: 3, cleanliness: 3 }
@@ -44,6 +53,21 @@ export function useBrewSession() {
   const ratio = computed(() => round1(water.value / dose.value))
 
   const method = useState<BrewMethod>('method', defaultMethod)
+
+  /** 完整紀錄 or 只記口感; remembered per browser */
+  const logMode = useState<LogMode>('log-mode', readLogMode)
+  /** Taste-only logs: optional method name (e.g. "4:6 法") and gear set, without any parameters */
+  const tasteMethod = useState('taste-method', () => '')
+  const tasteGearId = useState('taste-gear', () => '')
+
+  function setLogMode(mode: LogMode) {
+    logMode.value = mode
+    try {
+      localStorage.setItem(LOG_MODE_KEY, mode)
+    } catch {
+      // Storage unavailable (private mode): the choice just isn't remembered
+    }
+  }
 
   const overall = useState('overall', () => 0)
   const scores = useState<SensoryScores>('scores', defaultScores)
@@ -180,6 +204,10 @@ export function useBrewSession() {
     params: gear.params,
     gear: gear.selected,
     method,
+    logMode,
+    setLogMode,
+    tasteMethod,
+    tasteGearId,
     stages,
     targetFinish,
     overall,

@@ -8,7 +8,10 @@ const toast = useToast()
 
 const drippers = computed(() => {
   const counts = new Map<string, number>()
-  for (const l of logs.value) counts.set(l.params.dripper, (counts.get(l.params.dripper) ?? 0) + 1)
+  for (const l of logs.value) {
+    // Taste-only logs have no parameters
+    if (l.params) counts.set(l.params.dripper, (counts.get(l.params.dripper) ?? 0) + 1)
+  }
   return [...counts.entries()].sort((a, b) => b[1] - a[1])
 })
 

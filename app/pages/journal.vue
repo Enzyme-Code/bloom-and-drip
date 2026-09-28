@@ -84,7 +84,10 @@ function onDelete(id: string) {
               </p>
               <h2 class="font-serif text-headline-sm text-primary truncate">{{ log.bean.name }}</h2>
               <p class="text-body-sm text-on-surface-variant">{{ [log.bean.nameEn, log.bean.process].filter(Boolean).join(' · ') }}</p>
-              <p v-if="log.method || log.gearName" class="flex flex-wrap gap-1.5 mt-1 text-[11px]">
+              <p v-if="log.mode === 'taste' || log.method || log.gearName" class="flex flex-wrap gap-1.5 mt-1 text-[11px]">
+                <span v-if="log.mode === 'taste'" class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded bg-surface-container-highest text-primary font-semibold">
+                  <span class="icon text-[13px]">local_cafe</span>只記口感
+                </span>
                 <span v-if="log.method" class="px-2 py-0.5 rounded bg-secondary-fixed/60 text-on-secondary-fixed font-semibold">{{ log.method.name || '自訂手法' }}</span>
                 <span v-if="log.gearName" class="px-2 py-0.5 rounded bg-surface-container-high text-on-surface-variant">{{ log.gearName }}</span>
               </p>
@@ -92,14 +95,14 @@ function onDelete(id: string) {
             <img v-if="log.photo" :src="log.photo" alt="萃取影像" class="w-16 h-16 rounded-lg object-cover shrink-0">
           </div>
 
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono">
+          <div v-if="log.mode !== 'taste' && log.params" class="grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono">
             <div class="rounded-lg bg-surface-container p-2">
               <p class="text-[10px] text-outline">粉水比</p>
               <p class="text-body-sm text-primary">{{ log.dose }}g / {{ log.water }}g</p>
             </div>
             <div class="rounded-lg bg-surface-container p-2">
               <p class="text-[10px] text-outline">總時間</p>
-              <p class="text-body-sm text-primary">{{ formatTime(log.totalSeconds) }}</p>
+              <p class="text-body-sm text-primary">{{ formatTime(log.totalSeconds ?? null) }}</p>
             </div>
             <div class="rounded-lg bg-surface-container p-2">
               <p class="text-[10px] text-outline">水溫</p>
@@ -111,7 +114,7 @@ function onDelete(id: string) {
             </div>
           </div>
 
-          <ol v-if="log.stageSplits.length" class="flex flex-wrap gap-1.5 font-mono text-[10px]">
+          <ol v-if="log.stageSplits?.length" class="flex flex-wrap gap-1.5 font-mono text-[10px]">
             <li v-for="(split, i) in log.stageSplits" :key="split.key" class="px-2 py-0.5 rounded bg-surface-container-high text-on-surface-variant">
               {{ i + 1 }}. {{ split.label.split(' ')[0] }} · {{ formatTime(split.t) }}<template v-if="split.m != null"> / {{ split.m }}g</template>
             </li>

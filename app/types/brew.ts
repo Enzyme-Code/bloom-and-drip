@@ -99,6 +99,9 @@ export interface SensoryScores {
   cleanliness: number
 }
 
+/** 完整紀錄 (recipe + timing + tasting) or 只記口感 (tasting only) */
+export type LogMode = 'full' | 'taste'
+
 /** Stored at users/{uid}/brewLogs/{id} */
 export interface BrewLog {
   id: string
@@ -106,12 +109,14 @@ export interface BrewLog {
   createdAt: string
   /** Older logs lack bloomSeconds (and may still carry a retired altitude field) */
   bean: Pick<BeanInfo, 'name' | 'nameEn' | 'process' | 'roaster' | 'roast'> & Partial<Pick<BeanInfo, 'bloomSeconds'>>
-  dose: number
-  water: number
-  params: BrewParams
-  totalSeconds: number
-  stageSplits: StageSplit[]
-  /** Brew method used (absent on older logs) */
+  /** 'taste' = tasting notes only: dose, water, params and timing are absent. Absent = full log. */
+  mode?: 'taste'
+  dose?: number
+  water?: number
+  params?: BrewParams
+  totalSeconds?: number
+  stageSplits?: StageSplit[]
+  /** Brew method used (absent on older logs); taste-only logs keep just the name, with no steps */
   method?: BrewMethod
   gearId?: string
   gearName?: string
