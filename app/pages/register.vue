@@ -22,12 +22,12 @@ function validate() {
   return !Object.keys(fieldErrors).length
 }
 
-async function run(action: () => Promise<void>) {
+async function run(action: () => Promise<void>, welcome = '註冊成功，歡迎加入！') {
   error.value = ''
   loading.value = true
   try {
     await action()
-    toast.show('註冊成功，歡迎加入！', 'celebration')
+    toast.show(welcome, 'celebration')
     await navigateTo(safeRedirect(route.query.redirect), { replace: true })
   } catch (err) {
     error.value = authErrorMessage(err)
@@ -38,7 +38,7 @@ async function run(action: () => Promise<void>) {
 
 function onSubmit() {
   if (!validate()) return
-  run(() => register(form.name.trim(), form.email.trim(), form.password))
+  run(() => register(form.name.trim(), form.email.trim(), form.password), '註冊成功！驗證信已寄出，沒收到請檢查垃圾郵件匣')
 }
 </script>
 

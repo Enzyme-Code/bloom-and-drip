@@ -161,7 +161,7 @@ function commitCustom() {
     </div>
 
     <!-- Notes -->
-    <div class="flex flex-col gap-2 pt-2">
+    <div class="flex flex-col gap-2 pt-2 lg:flex-1">
       <div class="flex items-center justify-between">
         <span class="text-label-md text-on-surface-variant">
           <span class="hidden md:inline">咖啡師沖煮筆記與萃取心得</span>
@@ -173,7 +173,7 @@ function commitCustom() {
         v-model="notes"
         rows="4"
         placeholder="例：前段乾淨明亮，帶有顯著茉莉花香與檸檬柑橘果酸，中後段甜感以荔枝蜜呈現，尾韻悠長乾淨。"
-        class="w-full p-3 rounded-lg bg-surface-container text-on-surface text-body-md placeholder:text-outline/70 focus:outline-none focus:ring-1 focus:ring-secondary resize-none"
+        class="w-full lg:flex-1 p-3 rounded-lg bg-surface-container text-on-surface text-body-md placeholder:text-outline/70 focus:outline-none focus:ring-1 focus:ring-secondary resize-none"
       />
       <div class="flex flex-wrap gap-1.5 pt-1">
         <button

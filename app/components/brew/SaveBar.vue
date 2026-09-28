@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { savePreset } = useBrewSession()
+const { savePreset, logMode } = useBrewSession()
 const { status } = useBrewTimer()
 const { save, discard } = useBrewSave()
 const { user } = useAuth()
@@ -8,7 +8,7 @@ const toast = useToast()
 const requireLogin = useLoginPrompt()
 
 function onCancel() {
-  if (status.value !== 'idle' && !window.confirm('確定要捨棄本次沖煮紀錄嗎？')) return
+  if (logMode.value === 'full' && status.value !== 'idle' && !window.confirm('確定要捨棄本次沖煮紀錄嗎？')) return
   discard()
   toast.show('已清除本次紀錄', 'delete')
 }
@@ -54,6 +54,7 @@ function onPreset() {
           取消
         </button>
         <button
+          v-if="logMode === 'full'"
           type="button"
           class="px-4 py-2 rounded-lg bg-surface-container-highest text-on-surface text-label-md hover:bg-surface-dim transition-colors"
           @click="onPreset"

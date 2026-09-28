@@ -61,7 +61,7 @@ const caption = computed(() => `悶蒸膨脹良好 (Bloom ${stages.value[0]?.tar
       <span class="font-mono text-label-mono text-outline">BLOOM INSPECTION</span>
     </div>
 
-    <div class="relative w-full aspect-[4/3] rounded-lg overflow-hidden bg-surface-container shadow-inner group">
+    <div class="relative w-full aspect-[4/3] min-[1400px]:aspect-[16/10] 2xl:aspect-[2/1] rounded-lg overflow-hidden bg-surface-container shadow-inner group">
       <template v-if="photo">
         <img :src="photo" alt="萃取影像" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
         <div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/20 to-transparent flex flex-col justify-end p-space-md text-on-primary">

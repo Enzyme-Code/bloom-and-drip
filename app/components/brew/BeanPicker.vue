@@ -11,7 +11,7 @@ const root = ref<HTMLElement>()
 /** Latest log per bean name, newest first */
 const recent = computed(() => {
   const seen = new Set<string>()
-  const out: { info: BeanInfo; recipe: Recipe; key: string }[] = []
+  const out: { info: BeanInfo; recipe?: Recipe; key: string }[] = []
   for (const log of logs.value) {
     if (seen.has(log.bean.name)) continue
     seen.add(log.bean.name)
@@ -25,7 +25,8 @@ const recent = computed(() => {
         roast: log.bean.roast ?? '',
         bloomSeconds: log.bean.bloomSeconds || BLANK_BEAN.bloomSeconds
       },
-      recipe: { dose: log.dose, ratio: round1(log.water / log.dose), gearId: log.gearId, method: log.method }
+      // Taste-only logs carry no recipe: picking one falls back to the saved / template recipe
+      recipe: log.dose && log.water ? { dose: log.dose, ratio: round1(log.water / log.dose), gearId: log.gearId, method: log.method } : undefined
     })
     if (out.length >= 5) break
   }
@@ -71,7 +72,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside))
         >
           <p class="text-body-sm text-primary truncate">{{ r.info.name }}</p>
           <p class="font-mono text-[10px] text-outline truncate">
-            {{ [r.info.roaster, r.info.process].filter(Boolean).join(' · ') || '—' }} · {{ r.recipe.dose }}g 1:{{ r.recipe.ratio }}
+            {{ [r.info.roaster, r.info.process].filter(Boolean).join(' · ') || '—' }} · {{ r.recipe ? `${r.recipe.dose}g 1:${r.recipe.ratio}` : '只記口感' }}
           </p>
         </button>
       </template>

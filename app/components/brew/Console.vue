@@ -31,11 +31,14 @@ const currentTarget = computed(() => {
 })
 
 const toggleLabel = computed(() => ({
-  idle: { icon: 'play_arrow', text: '開始計時 (Start)' },
-  running: { icon: 'pause', text: '暫停計時 (Pause)' },
-  paused: { icon: 'play_arrow', text: '繼續計時 (Resume)' },
-  finished: { icon: 'check', text: '萃取完成 (Done)' }
+  idle: { icon: 'play_arrow', text: '開始計時', en: 'Start' },
+  running: { icon: 'pause', text: '暫停計時', en: 'Pause' },
+  paused: { icon: 'play_arrow', text: '繼續計時', en: 'Resume' },
+  finished: { icon: 'check', text: '萃取完成', en: 'Done' }
 })[status.value])
+
+/** English button subtitles only where the three buttons have room for them */
+const enClass = 'hidden min-[1100px]:inline'
 
 const timedSplits = computed(() => splits.value.filter((s): s is typeof s & { t: number } => s.t != null))
 
@@ -211,7 +214,7 @@ const isLastStage = computed(() => stageIndex.value === stages.value.length - 1 
         @click="timer.toggle"
       >
         <span class="icon text-[18px] text-secondary-fixed">{{ toggleLabel.icon }}</span>
-        {{ toggleLabel.text }}
+        <span class="whitespace-nowrap">{{ toggleLabel.text }}<span :class="enClass"> ({{ toggleLabel.en }})</span></span>
       </button>
       <button
         type="button"
@@ -220,7 +223,7 @@ const isLastStage = computed(() => stageIndex.value === stages.value.length - 1 
         @click="timer.nextStage"
       >
         <span class="icon text-[18px]">{{ isLastStage ? 'flag' : 'skip_next' }}</span>
-        {{ isLastStage ? '完成萃取 (Finish)' : '下一步 (Next Step)' }}
+        <span class="whitespace-nowrap">{{ isLastStage ? '完成萃取' : '下一步' }}<span :class="enClass"> ({{ isLastStage ? 'Finish' : 'Next Step' }})</span></span>
       </button>
       <button
         type="button"
@@ -228,7 +231,7 @@ const isLastStage = computed(() => stageIndex.value === stages.value.length - 1 
         @click="timer.reset"
       >
         <span class="icon text-[18px]">replay</span>
-        重新計時 (Reset)
+        <span class="whitespace-nowrap">重新計時<span :class="enClass"> (Reset)</span></span>
       </button>
     </div>
   </div>
