@@ -9,7 +9,7 @@ const { logMode } = useBrewSession()
     <BrewPageHeader />
     <BrewBeanProfile />
 
-    <div class="w-full px-margin-mobile md:px-margin pb-space-xl grid grid-cols-1 lg:grid-cols-12 gap-space-md md:gap-gutter">
+    <div class="w-full px-margin-mobile md:px-margin pb-space-xl md:pb-space-lg grid grid-cols-1 lg:grid-cols-12 gap-space-md md:gap-gutter">
       <div class="lg:col-span-7 min-w-0 flex flex-col gap-space-md md:gap-space-lg">
         <BrewLogMode />
         <template v-if="logMode === 'full'">
@@ -21,8 +21,9 @@ const { logMode } = useBrewSession()
       </div>
 
       <div class="lg:col-span-5 min-w-0 flex flex-col gap-space-lg">
+        <!-- On desktop the sensory panel stretches so both columns end level (its notes box absorbs the difference) -->
         <div class="hidden md:block"><BrewPhotoSnapshot /></div>
-        <BrewSensoryPanel />
+        <BrewSensoryPanel class="lg:flex-1" />
       </div>
     </div>
 
