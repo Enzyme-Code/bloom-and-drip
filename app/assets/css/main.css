@@ -51,8 +51,10 @@
   --spacing-margin: 3rem;
   --spacing-margin-mobile: 1.25rem;
 
-  --font-sans: "Manrope", "Noto Sans TC", system-ui, sans-serif;
-  --font-serif: "Newsreader", "Noto Serif TC", serif;
+  /* Rounded faces: Nunito for Latin, Huninn (jf 粉圓) for Traditional Chinese; system CJK fonts as fallback */
+  --font-sans: "Nunito", "Huninn", "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", system-ui, sans-serif;
+  /* Display / headline face (the `font-serif` name is kept so existing classes still apply) */
+  --font-serif: "Nunito", "Huninn", "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
   --text-display-timer: 64px;

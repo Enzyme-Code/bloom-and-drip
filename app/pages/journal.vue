@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import type { BrewLogEntry } from '~/composables/useBrewLogs'
 useHead({ title: '沖煮歷史與日誌 — Bloom & Drip' })
 
 const { logs, loading, error, remove } = useBrewLogs()
 const toast = useToast()
+const editing = ref<BrewLogEntry | null>(null)
 
 const rated = computed(() => logs.value.filter(l => l.overall > 0))
 const stats = computed(() => {
@@ -132,7 +134,11 @@ function onDelete(id: string) {
 
           <p v-if="log.notes" class="text-body-sm text-on-surface-variant line-clamp-3">{{ log.notes }}</p>
 
-          <div class="flex justify-end">
+          <div class="flex justify-end gap-4">
+            <button type="button" class="inline-flex items-center gap-1 text-[12px] text-outline hover:text-primary" @click="editing = log">
+              <span class="icon text-[16px]">edit</span>
+              編輯
+            </button>
             <button type="button" class="inline-flex items-center gap-1 text-[12px] text-outline hover:text-error" @click="onDelete(log.id)">
               <span class="icon text-[16px]">delete</span>
               刪除
@@ -141,5 +147,7 @@ function onDelete(id: string) {
         </li>
       </ul>
     </div>
+
+    <BrewLogEditor v-if="editing" :key="editing.id" :log="editing" @close="editing = null" />
   </div>
 </template>

@@ -1,3 +1,6 @@
+/** Firestore documents max out at 1 MiB; keep the embedded photo well below that */
+export const MAX_PHOTO_CHARS = 700_000
+
 /** Reads an image file and downsizes it to a JPEG data URL small enough to embed in a Firestore document. */
 export function fileToDataUrl(file: File, maxSize = 800, quality = 0.75): Promise<string> {
   return new Promise((resolve, reject) => {
