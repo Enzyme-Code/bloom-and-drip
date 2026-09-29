@@ -1,8 +1,5 @@
 import type { BrewLog } from '~/types/brew'
 
-/** Firestore documents max out at 1 MiB; keep the embedded photo well below that */
-const MAX_PHOTO_CHARS = 700_000
-
 /** Builds a BrewLog from the current session + timer and stores it in the journal. */
 export function useBrewSave() {
   const session = useBrewSession()

@@ -90,6 +90,20 @@ export function useBrewLogs() {
       })
   }
 
+  /** Replaces a saved log with an edited copy; same optimistic write + rollback as add() */
+  function update(log: BrewLog) {
+    const { id, ...data } = log
+    acked.value = Object.fromEntries(Object.entries(acked.value).filter(([k]) => k !== id))
+    setDoc(doc(logsCol(requireUid()), id), data)
+      .then(() => {
+        acked.value = { ...acked.value, [id]: true }
+      })
+      .catch((err) => {
+        console.error('[brewLogs] update failed', err)
+        toast.show(`雲端同步失敗，修改已還原：${firestoreErrorMessage(err)}`, 'error')
+      })
+  }
+
   function remove(id: string) {
     deleteDoc(doc(logsCol(requireUid()), id)).catch((err) => {
       console.error('[brewLogs] delete failed', err)
@@ -100,5 +114,5 @@ export function useBrewLogs() {
   /** Next recipe number, shown in the breadcrumb */
   const nextRecipeNo = computed(() => String(logs.value.length + 1).padStart(4, '0'))
 
-  return { logs, loading, error, add, remove, nextRecipeNo }
+  return { logs, loading, error, add, update, remove, nextRecipeNo }
 }
