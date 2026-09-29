@@ -250,10 +250,10 @@ const labelText = 'text-label-md text-on-surface-variant'
           <section class="flex flex-col gap-3">
             <h3 class="text-label-md uppercase tracking-wider text-primary">萃取影像</h3>
             <div class="flex items-center gap-3">
-              <div class="w-20 h-20 rounded-lg overflow-hidden bg-surface-container-highest shrink-0 flex items-center justify-center">
+              <PhotoPickButton class="w-20 h-20 rounded-lg overflow-hidden bg-surface-container-highest shrink-0 flex items-center justify-center" :aria-label="draft.photo ? '重新選擇照片' : '選擇照片'" @picked="onPicked">
                 <img v-if="draft.photo" :src="draft.photo" alt="萃取影像" class="w-full h-full object-cover">
                 <span v-else class="icon text-[26px] text-outline">image</span>
-              </div>
+              </PhotoPickButton>
               <div class="flex flex-wrap gap-2">
                 <PhotoPickButton camera class="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-surface-container text-on-surface-variant text-[12px] font-semibold hover:bg-surface-container-high pointer-fine:hidden" @picked="onPicked">
                   <span class="icon text-[16px]">photo_camera</span>拍照
