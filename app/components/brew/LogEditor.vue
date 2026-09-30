@@ -131,15 +131,13 @@ const labelText = 'text-label-md text-on-surface-variant'
               </label>
               <label :class="label">
                 <span :class="labelText">處理法</span>
-                <input v-model="draft.bean.process" :class="field" list="log-editor-process">
+                <SuggestInput v-model="draft.bean.process" :options="PROCESS_SUGGESTIONS" :class="field" />
               </label>
               <label :class="label">
                 <span :class="labelText">烘焙度</span>
-                <input v-model="draft.bean.roast" :class="field" list="log-editor-roast">
+                <SuggestInput v-model="draft.bean.roast" :options="ROAST_SUGGESTIONS" :class="field" />
               </label>
             </div>
-            <datalist id="log-editor-process"><option v-for="p in PROCESS_SUGGESTIONS" :key="p" :value="p" /></datalist>
-            <datalist id="log-editor-roast"><option v-for="r in ROAST_SUGGESTIONS" :key="r" :value="r" /></datalist>
           </section>
 
           <!-- Recipe (full logs) / method name (taste-only logs) -->
