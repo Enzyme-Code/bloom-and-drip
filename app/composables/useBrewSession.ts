@@ -31,12 +31,6 @@ function toBeanInfo({ name, nameEn, process, roaster, roast, bloomSeconds }: Bea
   return { name, nameEn, process, roaster, roast, bloomSeconds }
 }
 
-/** Firestore doc id for a bean's saved recipe: users/{uid}/presets/{key}. Beans are identified by name. */
-function presetKey(name: string) {
-  const key = name.trim().replace(/\//g, '／').slice(0, 200)
-  return key && key !== '.' && key !== '..' ? key : '_unnamed'
-}
-
 /**
  * Shared state for the brew being logged: bean, recipe, brew method and sensory evaluation.
  * Equipment parameters come from the selected gear set (useGear); timer state lives in useBrewTimer.
@@ -74,7 +68,7 @@ export function useBrewSession() {
   const flavors = useState<string[]>('flavors', () => [])
   const notes = useState('notes', () => '')
   const tags = useState<string[]>('tags', () => [])
-  const photo = useState<string | null>('photo', () => null)
+  const photos = useState<string[]>('photos', () => [])
 
   function setDose(value: number) {
     const next = Math.min(40, Math.max(5, round1(value)))
@@ -108,7 +102,7 @@ export function useBrewSession() {
   const presetRef = (name: string) => {
     const uid = user.value?.uid
     if (!uid) throw new Error('尚未登入')
-    return doc($db, 'users', uid, 'presets', presetKey(name))
+    return doc($db, 'users', uid, 'presets', nameKey(name))
   }
 
   async function fetchSavedRecipe(name: string): Promise<Recipe | undefined> {
@@ -193,7 +187,7 @@ export function useBrewSession() {
     flavors.value = []
     notes.value = ''
     tags.value = []
-    photo.value = null
+    photos.value = []
   }
 
   return {
@@ -215,7 +209,7 @@ export function useBrewSession() {
     flavors,
     notes,
     tags,
-    photo,
+    photos,
     setDose,
     setWater,
     setRatio,

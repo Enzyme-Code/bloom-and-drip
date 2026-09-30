@@ -12,6 +12,15 @@ const toast = useToast()
 // Work on a deep copy so cancelling leaves the entry untouched; `pending` is UI-only and never stored
 const { pending: _pending, ...initial } = props.log as BrewLog & { pending?: boolean }
 const draft = ref<BrewLog>(JSON.parse(JSON.stringify(initial)))
+// Older logs carry a single `photo`; edits are saved in the multi-photo shape
+draft.value.photos = logPhotos(draft.value)
+delete draft.value.photo
+const photos = computed({
+  get: () => draft.value.photos ?? [],
+  set: (v: string[]) => (draft.value.photos = v)
+})
+const { add: addPhotos, remove: removePhoto, busy: photoBusy, full: photosFull } = usePhotoList(photos)
+const viewing = ref<number | null>(null)
 const methodName = ref(draft.value.method?.name ?? '')
 const isTaste = draft.value.mode === 'taste'
 
@@ -30,13 +39,6 @@ function commitCustom() {
   customFlavor.value = ''
 }
 
-function onPicked(dataUrl: string) {
-  if (dataUrl.length > MAX_PHOTO_CHARS) {
-    toast.show('照片過大，請換一張', 'error')
-    return
-  }
-  draft.value.photo = dataUrl
-}
 
 function save() {
   const d = draft.value
@@ -75,13 +77,15 @@ function save() {
 function onKey(e: KeyboardEvent) {
   if (e.key === 'Escape') emit('close')
 }
+let prevOverflow = ''
 onMounted(() => {
   document.addEventListener('keydown', onKey)
+  prevOverflow = document.body.style.overflow
   document.body.style.overflow = 'hidden'
 })
 onBeforeUnmount(() => {
   document.removeEventListener('keydown', onKey)
-  document.body.style.overflow = ''
+  document.body.style.overflow = prevOverflow
 })
 
 const field = 'w-full px-3 py-2 rounded-lg bg-surface-container text-on-surface text-[16px] md:text-body-md placeholder:text-outline/70 focus:outline-none focus:ring-1 focus:ring-secondary'
@@ -246,30 +250,34 @@ const labelText = 'text-label-md text-on-surface-variant'
             </div>
           </section>
 
-          <!-- Photo -->
+          <!-- Photos -->
           <section class="flex flex-col gap-3">
-            <h3 class="text-label-md uppercase tracking-wider text-primary">萃取影像</h3>
-            <div class="flex items-center gap-3">
-              <PhotoPickButton class="w-20 h-20 rounded-lg overflow-hidden bg-surface-container-highest shrink-0 flex items-center justify-center" :aria-label="draft.photo ? '重新選擇照片' : '選擇照片'" @picked="onPicked">
-                <img v-if="draft.photo" :src="draft.photo" alt="萃取影像" class="w-full h-full object-cover">
-                <span v-else class="icon text-[26px] text-outline">image</span>
-              </PhotoPickButton>
-              <div class="flex flex-wrap gap-2">
-                <PhotoPickButton camera class="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-surface-container text-on-surface-variant text-[12px] font-semibold hover:bg-surface-container-high pointer-fine:hidden" @picked="onPicked">
-                  <span class="icon text-[16px]">photo_camera</span>拍照
-                </PhotoPickButton>
-                <PhotoPickButton class="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-surface-container text-on-surface-variant text-[12px] font-semibold hover:bg-surface-container-high" @picked="onPicked">
-                  <span class="icon text-[16px]">photo_library</span>{{ draft.photo ? '替換照片' : '選擇照片' }}
-                </PhotoPickButton>
+            <div class="flex items-baseline justify-between gap-2">
+              <h3 class="text-label-md uppercase tracking-wider text-primary">萃取影像</h3>
+              <span class="font-mono text-[10px] text-outline">{{ photos.length }} / {{ MAX_PHOTOS }} 張</span>
+            </div>
+            <div class="flex flex-wrap gap-2.5 pt-1.5">
+              <div v-for="(p, i) in photos" :key="i" class="relative">
+                <button type="button" class="block w-20 h-20 rounded-lg overflow-hidden bg-surface-container-highest" :aria-label="`放大第 ${i + 1} 張`" @click="viewing = i">
+                  <img :src="p" alt="萃取影像" class="w-full h-full object-cover">
+                </button>
                 <button
-                  v-if="draft.photo"
                   type="button"
-                  class="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-surface-container text-on-surface-variant text-[12px] font-semibold hover:bg-surface-container-high hover:text-error"
-                  @click="draft.photo = null"
+                  class="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-primary text-on-primary flex items-center justify-center shadow"
+                  :aria-label="`移除第 ${i + 1} 張`"
+                  @click="removePhoto(i)"
                 >
-                  <span class="icon text-[16px]">delete</span>移除
+                  <span class="icon text-[14px]">close</span>
                 </button>
               </div>
+              <template v-if="!photosFull">
+                <PhotoPickButton camera :disabled="photoBusy" class="w-20 h-20 rounded-lg bg-surface-container text-on-surface-variant text-[11px] font-semibold flex flex-col items-center justify-center gap-0.5 hover:bg-surface-container-high pointer-fine:hidden" @picked="addPhotos">
+                  <span class="icon text-[22px]">photo_camera</span>拍照
+                </PhotoPickButton>
+                <PhotoPickButton :disabled="photoBusy" class="w-20 h-20 rounded-lg border border-dashed border-outline-variant text-on-surface-variant text-[11px] font-semibold flex flex-col items-center justify-center gap-0.5 hover:text-secondary hover:border-secondary" @picked="addPhotos">
+                  <span class="icon text-[22px]" :class="{ 'animate-spin': photoBusy }">{{ photoBusy ? 'progress_activity' : 'add_photo_alternate' }}</span>新增照片
+                </PhotoPickButton>
+              </template>
             </div>
           </section>
         </div>
@@ -285,4 +293,5 @@ const labelText = 'text-label-md text-on-surface-variant'
       </div>
     </div>
   </Teleport>
+  <PhotoViewer v-if="viewing != null" :photos="photos" :start="viewing" :caption="draft.bean.name" @close="viewing = null" />
 </template>

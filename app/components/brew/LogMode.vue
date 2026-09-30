@@ -4,14 +4,17 @@ import type { LogMode } from '~/types/brew'
 
 const { logMode, setLogMode, tasteMethod, tasteGearId, method } = useBrewSession()
 const { gearSets } = useGear()
+const { methods: savedMethods } = useSavedMethods()
 
 const MODES: { value: LogMode; label: string; icon: string; hint: string }[] = [
   { value: 'full', label: '完整紀錄', icon: 'timer', hint: '粉水比、手法步驟、計時與口感' },
   { value: 'taste', label: '只記口感', icon: 'local_cafe', hint: '只記風味與評分，不需要沖煮參數' }
 ]
 
-/** Template names plus the current custom method, as suggestions for the free-text field */
-const methodSuggestions = computed(() => [...new Set([...methodTemplates().map(t => t.method.name), method.value.name].filter(Boolean))])
+/** Saved methods, template names and the current custom method, as suggestions for the free-text field */
+const methodSuggestions = computed(() => [
+  ...new Set([...savedMethods.value.map(m => m.name), ...methodTemplates().map(t => t.method.name), method.value.name].filter(Boolean))
+])
 
 const fieldClass = 'w-full min-w-0 px-3 py-2 rounded-lg bg-surface-container-lowest text-body-sm text-on-surface placeholder:text-outline/70 focus:outline-none focus:ring-1 focus:ring-secondary'
 </script>
