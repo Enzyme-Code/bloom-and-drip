@@ -23,3 +23,12 @@ export function round1(n: number): number {
 export function formatRatio(ratio: number): string {
   return `1 : ${Number.isInteger(Math.round(ratio * 100) / 10) ? ratio.toFixed(1) : ratio.toFixed(2)}`
 }
+
+/**
+ * Firestore doc id derived from a name, for things identified by name: a bean's saved recipe
+ * (users/{uid}/presets/{key}) and the bean / method library.
+ */
+export function nameKey(name: string) {
+  const key = name.trim().replace(/\//g, '／').slice(0, 200)
+  return key && key !== '.' && key !== '..' ? key : '_unnamed'
+}

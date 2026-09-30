@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import { STEP_META, STEP_TYPES, methodTemplates, newStepId } from '~/data/methods'
-import type { MethodStep, StepType } from '~/types/brew'
+import type { BrewMethod, MethodStep, SavedMethod, StepType } from '~/types/brew'
 
 const { method, water, stages, targetFinish } = useBrewSession()
 const { status } = useBrewTimer()
 const toast = useToast()
+const requireLogin = useLoginPrompt()
+const { methods: savedMethods, findMethod, saveMethod, removeMethod } = useSavedMethods()
 
 const editing = useState('method-editing', () => false)
-const templatesOpen = ref(false)
+const menuOpen = ref(false)
 const templates = methodTemplates()
-const menuRoot = ref<HTMLElement>()
 
 /** Steps can't change once timing started: splits are keyed by step id */
 const locked = computed(() => status.value !== 'idle')
@@ -27,12 +28,50 @@ function guard() {
 }
 
 function applyTemplate(id: string) {
-  templatesOpen.value = false
+  menuOpen.value = false
   if (guard()) return
   const t = methodTemplates().find(x => x.id === id)
   if (!t) return
   method.value = t.method
   toast.show(`已套用「${t.method.name}」`, 'auto_awesome')
+}
+
+function applySaved(saved: SavedMethod) {
+  menuOpen.value = false
+  if (guard()) return
+  method.value = cloneMethod(saved)
+  toast.show(`已套用「${saved.name}」`, 'bookmark')
+}
+
+/** Steps without their ids, to tell whether the current method differs from a saved one */
+const stepsSignature = (m: BrewMethod) => JSON.stringify(m.steps.map(({ id: _id, ...rest }) => rest))
+const currentSaved = computed(() => (method.value.name.trim() ? findMethod(method.value.name) : undefined))
+const currentIsSaved = computed(() => !!currentSaved.value && stepsSignature(currentSaved.value) === stepsSignature(method.value))
+
+function onSaveMethod() {
+  menuOpen.value = false
+  if (!requireLogin('登入後即可儲存自己的手法')) return
+  let name = method.value.name.trim()
+  if (!name) {
+    name = window.prompt('幫這個手法取個名字', '我的手法')?.trim().slice(0, 30) ?? ''
+    if (!name) return
+    method.value.name = name
+  }
+  const existing = findMethod(name)
+  if (existing && !currentIsSaved.value && !window.confirm(`「${existing.name}」已在我的手法中，要用目前的步驟覆蓋嗎？`)) return
+  try {
+    saveMethod(method.value)
+  } catch (err) {
+    toast.show(`儲存失敗：${firestoreErrorMessage(err)}`, 'error')
+    return
+  }
+  toast.show(existing ? `已更新我的手法「${name}」` : `已存到我的手法「${name}」`, 'bookmark_added')
+}
+
+function onRemoveSaved(saved: SavedMethod) {
+  if (!window.confirm(`要從我的手法移除「${saved.name}」嗎？`)) return
+  removeMethod(saved.id)
+  toast.show(`已移除「${saved.name}」`, 'delete')
 }
 
 function toggleEditing() {
@@ -100,12 +139,6 @@ function fixLastPour() {
   if (last) last.share = 1
 }
 
-function onClickOutside(e: MouseEvent) {
-  if (menuRoot.value && !menuRoot.value.contains(e.target as Node)) templatesOpen.value = false
-}
-onMounted(() => document.addEventListener('click', onClickOutside))
-onBeforeUnmount(() => document.removeEventListener('click', onClickOutside))
-
 const inputClass = 'w-full min-w-0 px-2 py-1.5 rounded bg-surface-container-lowest font-mono text-body-sm text-primary focus:outline-none focus:ring-1 focus:ring-secondary'
 </script>
 
@@ -121,27 +154,53 @@ const inputClass = 'w-full min-w-0 px-2 py-1.5 rounded bg-surface-container-lowe
         <span class="px-2 py-0.5 rounded bg-secondary-fixed/60 text-on-secondary-fixed text-[12px] font-semibold truncate">{{ method.name || '自訂手法' }}</span>
       </div>
       <div class="flex items-center gap-2">
-        <div ref="menuRoot" class="relative">
+        <MenuSheet v-model:open="menuOpen" title="選擇沖煮手法">
+          <template #trigger="{ toggle }">
+            <button
+              type="button"
+              class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface-container-high text-[12px] font-semibold text-on-surface hover:bg-surface-container-highest transition-colors"
+              :aria-expanded="menuOpen"
+              @click="toggle"
+            >
+              <span class="icon text-[15px]">auto_awesome</span><span>選擇<span class="hidden sm:inline">手法</span></span>
+            </button>
+          </template>
+
           <button
             type="button"
-            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface-container-high text-[12px] font-semibold text-on-surface hover:bg-surface-container-highest transition-colors"
-            @click="templatesOpen = !templatesOpen"
+            class="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-body-sm font-semibold text-secondary hover:bg-surface-container disabled:opacity-50 disabled:hover:bg-transparent"
+            :disabled="currentIsSaved"
+            @click="onSaveMethod"
           >
-            <span class="icon text-[15px]">auto_awesome</span><span class="hidden sm:inline">套用</span>範本
+            <span class="icon text-[18px]">{{ currentIsSaved ? 'bookmark_added' : 'bookmark_add' }}</span>
+            <span class="truncate">{{ currentIsSaved ? `「${method.name}」已在我的手法` : currentSaved ? `更新我的手法「${method.name}」` : '將目前手法存到我的手法' }}</span>
           </button>
-          <div v-if="templatesOpen" class="absolute right-0 top-full mt-2 w-72 rounded-xl bg-surface-container-lowest shadow-lg border border-outline-variant/50 p-2 z-30">
-            <button
-              v-for="t in templates"
-              :key="t.id"
-              type="button"
-              class="w-full text-left px-3 py-2 rounded-lg hover:bg-surface-container"
-              @click="applyTemplate(t.id)"
-            >
-              <p class="text-body-sm font-semibold text-primary">{{ t.method.name }} <span class="font-mono text-[10px] text-outline font-normal">{{ t.method.steps.length }} 步</span></p>
-              <p class="text-[11px] text-on-surface-variant">{{ t.description }}</p>
-            </button>
-          </div>
-        </div>
+
+          <template v-if="savedMethods.length">
+            <p class="px-3 pt-2 pb-1 font-mono text-[10px] text-outline uppercase tracking-wider">我的手法</p>
+            <div v-for="m in savedMethods" :key="m.id" class="flex items-center gap-1 rounded-lg hover:bg-surface-container">
+              <button type="button" class="flex-1 min-w-0 text-left px-3 py-2" @click="applySaved(m)">
+                <p class="text-body-sm font-semibold text-primary truncate">{{ m.name }} <span class="font-mono text-[10px] text-outline font-normal">{{ m.steps.length }} 步</span></p>
+                <p class="font-mono text-[10px] text-on-surface-variant truncate">{{ m.steps.map(s => STEP_META[s.type]?.short).join(' → ') }}</p>
+              </button>
+              <button type="button" class="w-9 h-9 mr-1 shrink-0 rounded-lg flex items-center justify-center text-outline hover:text-error hover:bg-error-container/50" :aria-label="`移除 ${m.name}`" @click="onRemoveSaved(m)">
+                <span class="icon text-[18px]">delete</span>
+              </button>
+            </div>
+          </template>
+
+          <p class="px-3 pt-2 pb-1 font-mono text-[10px] text-outline uppercase tracking-wider">內建範本</p>
+          <button
+            v-for="t in templates"
+            :key="t.id"
+            type="button"
+            class="w-full text-left px-3 py-2 rounded-lg hover:bg-surface-container"
+            @click="applyTemplate(t.id)"
+          >
+            <p class="text-body-sm font-semibold text-primary">{{ t.method.name }} <span class="font-mono text-[10px] text-outline font-normal">{{ t.method.steps.length }} 步</span></p>
+            <p class="text-[11px] text-on-surface-variant">{{ t.description }}</p>
+          </button>
+        </MenuSheet>
         <button
           type="button"
           class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[12px] font-semibold transition-colors"
@@ -149,7 +208,7 @@ const inputClass = 'w-full min-w-0 px-2 py-1.5 rounded bg-surface-container-lowe
           @click="toggleEditing"
         >
           <span class="icon text-[15px]">{{ editing ? 'check' : 'edit' }}</span>
-          {{ editing ? '完成' : '編輯' }}<span v-if="!editing" class="hidden sm:inline">步驟</span>
+          <span>{{ editing ? '完成' : '編輯' }}<span v-if="!editing" class="hidden sm:inline">步驟</span></span>
         </button>
       </div>
     </div>
@@ -239,13 +298,23 @@ const inputClass = 'w-full min-w-0 px-2 py-1.5 rounded bg-surface-container-lowe
       </div>
 
       <div class="flex flex-wrap items-center justify-between gap-2">
-        <button
-          type="button"
-          class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-secondary-fixed/50 text-on-secondary-fixed text-[12px] font-semibold hover:bg-secondary-fixed transition-colors"
-          @click="addStep"
-        >
-          <span class="icon text-[16px]">add</span>新增步驟
-        </button>
+        <div class="flex flex-wrap gap-2">
+          <button
+            type="button"
+            class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-secondary-fixed/50 text-on-secondary-fixed text-[12px] font-semibold hover:bg-secondary-fixed transition-colors"
+            @click="addStep"
+          >
+            <span class="icon text-[16px]">add</span>新增步驟
+          </button>
+          <button
+            type="button"
+            class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-surface-container-high text-on-surface text-[12px] font-semibold hover:bg-surface-container-highest transition-colors disabled:opacity-50"
+            :disabled="currentIsSaved"
+            @click="onSaveMethod"
+          >
+            <span class="icon text-[16px]">{{ currentIsSaved ? 'bookmark_added' : 'bookmark_add' }}</span>{{ currentIsSaved ? '已儲存' : '存到我的手法' }}
+          </button>
+        </div>
         <p v-if="waterMismatch != null" class="flex items-center gap-1.5 text-[12px] text-on-surface-variant">
           <span class="icon text-[15px] text-secondary">info</span>
           最後注水到 {{ waterMismatch }}g，總水量是 {{ water }}g

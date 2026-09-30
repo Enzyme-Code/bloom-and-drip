@@ -125,6 +125,21 @@ export interface BrewLog {
   flavors: string[]
   notes: string
   tags: string[]
-  /** Compressed JPEG data URL (kept small to fit Firestore's 1 MiB document limit) */
-  photo: string | null
+  /** Compressed JPEG data URLs, sharing one size budget to fit Firestore's 1 MiB document limit */
+  photos?: string[]
+  /** Single photo on logs saved before multi-photo support; read through logPhotos() */
+  photo?: string | null
+}
+
+/** A bean kept in the user's library (users/{uid}/beans/{key}, keyed by name like presets) */
+export interface SavedBean extends BeanInfo {
+  id: string
+  /** ISO timestamp of the last save, newest first in the picker */
+  updatedAt: string
+}
+
+/** A brew method kept in the user's library (users/{uid}/methods/{key}, keyed by name) */
+export interface SavedMethod extends BrewMethod {
+  id: string
+  updatedAt: string
 }

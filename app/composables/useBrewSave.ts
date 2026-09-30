@@ -11,14 +11,14 @@ export function useBrewSave() {
 
   function buildLog(): BrewLog {
     const b = session.bean.value
-    const photo = session.photo.value
     const tasting = {
       overall: session.overall.value,
       scores: { ...session.scores.value },
       flavors: [...session.flavors.value],
       notes: session.notes.value.trim(),
       tags: [...session.tags.value],
-      photo: photo && photo.length <= MAX_PHOTO_CHARS ? photo : null
+      // usePhotoList keeps the list within budget; this is only a safety net against an oversized document
+      photos: photosSize(session.photos.value) <= PHOTO_BUDGET_CHARS ? [...session.photos.value] : []
     }
     const bean = {
       name: b.name.trim() || '未命名咖啡豆',
@@ -66,7 +66,7 @@ export function useBrewSave() {
       || !!session.notes.value.trim()
       || session.flavors.value.length > 0
       || session.tags.value.length > 0
-      || !!session.photo.value
+      || session.photos.value.length > 0
   }
 
   function save() {
@@ -80,7 +80,7 @@ export function useBrewSave() {
     if (!taste && timer.status.value === 'running') timer.pause()
 
     const log = buildLog()
-    const photoDropped = !!session.photo.value && !log.photo
+    const photoDropped = session.photos.value.length > 0 && !log.photos?.length
     try {
       add(log)
     } catch (err) {

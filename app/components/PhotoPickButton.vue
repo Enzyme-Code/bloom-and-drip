@@ -1,28 +1,31 @@
 <script setup lang="ts">
 /**
- * A clickable label wrapping a hidden file input that emits the picked image as a compressed JPEG data URL.
- * `camera` opens the camera directly on phones; without it phones offer the photo library (and camera).
+ * A clickable label wrapping a hidden file input that emits the picked image files.
+ * `camera` opens the camera directly on phones; without it phones offer the photo library (and camera),
+ * where several photos can be picked at once.
  */
-defineProps<{ camera?: boolean }>()
-const emit = defineEmits<{ picked: [dataUrl: string] }>()
-const toast = useToast()
+defineProps<{ camera?: boolean; disabled?: boolean }>()
+const emit = defineEmits<{ picked: [files: File[]] }>()
 
-async function onFile(e: Event) {
+function onFile(e: Event) {
   const input = e.target as HTMLInputElement
-  const file = input.files?.[0]
+  const files = [...(input.files ?? [])]
   input.value = ''
-  if (!file) return
-  try {
-    emit('picked', await fileToDataUrl(file))
-  } catch (err) {
-    toast.show((err as Error).message, 'error')
-  }
+  if (files.length) emit('picked', files)
 }
 </script>
 
 <template>
-  <label class="cursor-pointer">
-    <input type="file" accept="image/*" :capture="camera ? 'environment' : undefined" class="hidden" @change="onFile">
+  <label :class="disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'">
+    <input
+      type="file"
+      accept="image/*"
+      :multiple="!camera"
+      :capture="camera ? 'environment' : undefined"
+      :disabled="disabled"
+      class="hidden"
+      @change="onFile"
+    >
     <slot />
   </label>
 </template>

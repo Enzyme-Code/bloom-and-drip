@@ -5,6 +5,8 @@ import type { BeanInfo, Recipe } from '~/types/brew'
 const { bean, selectBean } = useBrewSession()
 const { status } = useBrewTimer()
 const toast = useToast()
+const requireLogin = useLoginPrompt()
+const { findBean, saveBean } = useSavedBeans()
 
 const editing = useState('bean-editing', () => false)
 const nameInput = ref<HTMLInputElement>()
@@ -60,6 +62,35 @@ function onBlank() {
   startEditing()
 }
 
+const BEAN_FIELDS = ['name', 'nameEn', 'process', 'roaster', 'roast'] as const
+/** 'saved' when this bean is in 我的咖啡豆 exactly as shown, 'changed' when saved but edited since */
+const savedState = computed(() => {
+  if (!bean.value.name.trim()) return 'none'
+  const saved = findBean(bean.value.name)
+  if (!saved) return 'none'
+  const same = BEAN_FIELDS.every(k => saved[k] === bean.value[k].trim()) && saved.bloomSeconds === (Number(bean.value.bloomSeconds) || 0)
+  return same ? 'saved' : 'changed'
+})
+const saveLabel = computed(() => ({ none: '收藏', saved: '已收藏', changed: '更新收藏' })[savedState.value])
+
+function onSaveBean() {
+  if (savedState.value === 'saved') return
+  if (!bean.value.name.trim()) {
+    toast.show('請先填寫咖啡豆品名', 'info')
+    startEditing()
+    return
+  }
+  if (!requireLogin('登入後即可收藏咖啡豆')) return
+  const updating = savedState.value === 'changed'
+  try {
+    saveBean(bean.value)
+  } catch (err) {
+    toast.show(`收藏失敗：${firestoreErrorMessage(err)}`, 'error')
+    return
+  }
+  toast.show(updating ? `已更新「${bean.value.name.trim()}」` : `已收藏到我的咖啡豆，之後可從「更換」快速選取`, 'bookmark_added')
+}
+
 /** Bloom seconds input: empty or invalid becomes 0 rather than NaN */
 const bloomModel = computed({
   get: () => bean.value.bloomSeconds || '',
@@ -82,6 +113,16 @@ const labelClass = 'flex flex-col gap-1 text-[11px] font-semibold text-on-surfac
           <span class="icon text-[15px] text-secondary">coffee</span>咖啡豆
         </span>
         <div class="flex items-center gap-1.5">
+          <button
+            type="button"
+            class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-surface-container-high"
+            :class="savedState === 'none' ? 'text-on-surface' : 'text-secondary'"
+            :aria-label="saveLabel"
+            :title="saveLabel"
+            @click="onSaveBean"
+          >
+            <span class="icon text-[18px]" :class="{ 'icon-fill': savedState === 'saved' }">{{ savedState === 'changed' ? 'bookmark_add' : 'bookmark' }}</span>
+          </button>
           <button
             type="button"
             class="inline-flex items-center gap-1 h-8 px-2.5 rounded-lg text-[12px] font-semibold transition-colors"
@@ -125,6 +166,16 @@ const labelClass = 'flex flex-col gap-1 text-[11px] font-semibold text-on-surfac
         </div>
 
         <div class="hidden md:flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container-high text-body-sm hover:bg-surface-container-highest transition-colors"
+            :class="savedState === 'none' ? 'text-on-surface' : 'text-secondary'"
+            :aria-label="saveLabel"
+            @click="onSaveBean"
+          >
+            <span class="icon text-[16px]" :class="{ 'icon-fill': savedState === 'saved' }">{{ savedState === 'changed' ? 'bookmark_add' : 'bookmark' }}</span>
+            {{ saveLabel }}
+          </button>
           <button
             type="button"
             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-body-sm transition-colors"
