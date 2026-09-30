@@ -7,6 +7,19 @@ const { status } = useBrewTimer()
 const toast = useToast()
 const requireLogin = useLoginPrompt()
 const { findBean, saveBean } = useSavedBeans()
+const { logs, loading } = useBrewLogs()
+
+/** Once per visit: if no bean has been chosen yet, continue with the most recently brewed one */
+const restored = useState('bean-restored', () => false)
+watch(loading, (isLoading) => {
+  if (isLoading || restored.value) return
+  restored.value = true
+  const last = logs.value[0]
+  if (!last || bean.value.name.trim() || status.value !== 'idle') return
+  const { info, recipe } = beanFromLog(last)
+  selectBean(info, recipe)
+  toast.show(`已帶入上次沖煮的「${info.name}」`, 'history')
+}, { immediate: true })
 
 const editing = useState('bean-editing', () => false)
 const nameInput = ref<HTMLInputElement>()
@@ -161,7 +174,7 @@ const labelClass = 'flex flex-col gap-1 text-[11px] font-semibold text-on-surfac
             <div v-if="chips.length" class="hidden md:flex flex-wrap items-center gap-1.5 font-mono text-[11px]">
               <span v-for="c in chips" :key="c.text" class="px-2 py-0.5 rounded-sm" :class="chipClass[c.tone]">{{ c.text }}</span>
             </div>
-            <p v-else-if="!editing" class="hidden md:block text-body-sm text-outline">點「編輯」填寫產區、處理法、烘豆商等資訊</p>
+            <p v-else-if="!editing" class="hidden md:block text-body-sm text-outline">{{ bean.name.trim() ? '點「編輯」填寫產區、處理法、烘豆商等資訊' : '點「編輯」輸入豆名，或從「更換」選擇收藏的豆子' }}</p>
           </div>
         </div>
 
@@ -207,7 +220,7 @@ const labelClass = 'flex flex-col gap-1 text-[11px] font-semibold text-on-surfac
           <dd class="text-body-sm text-primary font-medium truncate">{{ item.value }}</dd>
         </div>
       </dl>
-      <p v-else-if="!editing" class="md:hidden text-body-sm text-outline">點「編輯」填寫產區、處理法、烘豆商等資訊</p>
+      <p v-else-if="!editing" class="md:hidden text-body-sm text-outline">{{ bean.name.trim() ? '點「編輯」填寫產區、處理法、烘豆商等資訊' : '點「編輯」輸入豆名，或從「更換」選擇收藏的豆子' }}</p>
 
       <!-- Editor -->
       <form v-if="editing" class="grid grid-cols-1 min-[380px]:grid-cols-2 lg:grid-cols-4 gap-x-3 gap-y-2.5 pt-3 md:pt-0 border-t md:border-t-0 border-outline-variant/50" @submit.prevent="editing = false">
@@ -221,11 +234,11 @@ const labelClass = 'flex flex-col gap-1 text-[11px] font-semibold text-on-surfac
         </label>
         <label :class="labelClass">
           處理法
-          <input v-model="bean.process" :class="fieldClass" list="bean-process-options" placeholder="例：日曬" maxlength="40">
+          <SuggestInput v-model="bean.process" :options="PROCESS_SUGGESTIONS" :class="fieldClass" placeholder="例：日曬" maxlength="40" />
         </label>
         <label :class="labelClass">
           焙度
-          <input v-model="bean.roast" :class="fieldClass" list="bean-roast-options" placeholder="例：淺焙" maxlength="40">
+          <SuggestInput v-model="bean.roast" :options="ROAST_SUGGESTIONS" :class="fieldClass" placeholder="例：淺焙" maxlength="40" />
         </label>
         <label :class="labelClass">
           烘豆商
@@ -235,12 +248,6 @@ const labelClass = 'flex flex-col gap-1 text-[11px] font-semibold text-on-surfac
           悶蒸 (秒)
           <input v-model="bloomModel" type="number" min="0" max="120" inputmode="numeric" :class="fieldClass">
         </label>
-        <datalist id="bean-process-options">
-          <option v-for="o in PROCESS_SUGGESTIONS" :key="o" :value="o" />
-        </datalist>
-        <datalist id="bean-roast-options">
-          <option v-for="o in ROAST_SUGGESTIONS" :key="o" :value="o" />
-        </datalist>
         <button type="submit" class="hidden" />
       </form>
     </div>

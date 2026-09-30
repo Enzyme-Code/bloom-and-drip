@@ -51,10 +51,7 @@ const fieldClass = 'w-full min-w-0 px-3 py-2 rounded-lg bg-surface-container-low
       <div class="grid grid-cols-1 min-[380px]:grid-cols-2 gap-3">
         <label class="flex flex-col gap-1 text-[11px] font-semibold text-on-surface-variant min-w-0">
           手法
-          <input v-model="tasteMethod" :class="fieldClass" list="taste-method-options" placeholder="例：4:6 法" maxlength="40">
-          <datalist id="taste-method-options">
-            <option v-for="name in methodSuggestions" :key="name" :value="name" />
-          </datalist>
+          <SuggestInput v-model="tasteMethod" :options="methodSuggestions" :class="fieldClass" placeholder="例：4:6 法" maxlength="40" />
         </label>
         <label class="flex flex-col gap-1 text-[11px] font-semibold text-on-surface-variant min-w-0">
           器具

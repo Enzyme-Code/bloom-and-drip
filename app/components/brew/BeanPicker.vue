@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { BEAN_TEMPLATES, BLANK_BEAN } from '~/data/beans'
+import { BEAN_TEMPLATES } from '~/data/beans'
 import type { BeanInfo, Recipe, SavedBean } from '~/types/brew'
 
 const emit = defineEmits<{ pick: [info: BeanInfo, recipe?: Recipe]; blank: [] }>()
@@ -16,19 +16,8 @@ const recent = computed(() => {
   for (const log of logs.value) {
     if (seen.has(log.bean.name)) continue
     seen.add(log.bean.name)
-    out.push({
-      key: log.id,
-      info: {
-        name: log.bean.name,
-        nameEn: log.bean.nameEn ?? '',
-        process: log.bean.process ?? '',
-        roaster: log.bean.roaster ?? '',
-        roast: log.bean.roast ?? '',
-        bloomSeconds: log.bean.bloomSeconds || BLANK_BEAN.bloomSeconds
-      },
-      // Taste-only logs carry no recipe: picking one falls back to the saved / template recipe
-      recipe: log.dose && log.water ? { dose: log.dose, ratio: round1(log.water / log.dose), gearId: log.gearId, method: log.method } : undefined
-    })
+    // Taste-only logs carry no recipe: picking one falls back to the saved / template recipe
+    out.push({ key: log.id, ...beanFromLog(log) })
     if (out.length >= 5) break
   }
   return out

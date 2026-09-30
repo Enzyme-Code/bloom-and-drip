@@ -1,7 +1,7 @@
 import { doc, getDoc, setDoc } from 'firebase/firestore'
-import { BEAN_TEMPLATES } from '~/data/beans'
+import { BEAN_TEMPLATES, BLANK_BEAN } from '~/data/beans'
 import { DEFAULT_METHOD_ID, STEP_META, methodTemplates, newStepId } from '~/data/methods'
-import type { BeanInfo, BeanTemplate, BrewMethod, BrewStage, LogMode, Recipe, SensoryScores } from '~/types/brew'
+import type { BeanInfo, BrewMethod, BrewStage, LogMode, Recipe, SensoryScores } from '~/types/brew'
 
 const DEFAULT_TEMPLATE = BEAN_TEMPLATES[0]!
 const LOG_MODE_KEY = 'bloom-and-drip:log-mode'
@@ -27,10 +27,6 @@ export function cloneMethod(m: BrewMethod): BrewMethod {
   return { name: m.name, steps: m.steps.map(s => ({ ...s, id: newStepId() })) }
 }
 
-function toBeanInfo({ name, nameEn, process, roaster, roast, bloomSeconds }: BeanTemplate): BeanInfo {
-  return { name, nameEn, process, roaster, roast, bloomSeconds }
-}
-
 /**
  * Shared state for the brew being logged: bean, recipe, brew method and sensory evaluation.
  * Equipment parameters come from the selected gear set (useGear); timer state lives in useBrewTimer.
@@ -40,7 +36,9 @@ export function useBrewSession() {
   const { user } = useAuth()
   const gear = useGear()
 
-  const bean = useState<BeanInfo>('bean', () => toBeanInfo(DEFAULT_TEMPLATE))
+  // Starts blank rather than on a sample bean, so a log is never saved under a bean that wasn't brewed;
+  // BeanProfile brings back the last brewed bean once the journal loads
+  const bean = useState<BeanInfo>('bean', () => ({ ...BLANK_BEAN }))
 
   const dose = useState('dose', () => DEFAULT_TEMPLATE.recommended.dose)
   const water = useState('water', () => DEFAULT_TEMPLATE.recommended.dose * DEFAULT_TEMPLATE.recommended.ratio)
